@@ -1,0 +1,11 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: f796a47
+_src_path: https://github.com/jakob1379/postmodern-python-copier
+description: Python library to convert text into a ics file with a streamlit app for
+    interaction
+include_dockerfile: false
+module_name: text2ics
+project_name: text2ics
+python_version: 3.13.4
+user_email: jakob1379@gmail.com
+user_name: Jakob Stender Guldberg
