@@ -411,8 +411,8 @@ def render_input_section():
             if config_completed:
                 st.session_state.current_step = 2
         
-        if st.session_state.app_state.input_completed:
-            st.success("✅ Content added! Ready for Step 3.")
+        # if st.session_state.app_state.input_completed:
+        #     st.success("✅ Content added! Ready to generate!")
         
         st.markdown('</div>', unsafe_allow_html=True)
     
@@ -425,7 +425,7 @@ def render_preview_section(text_content: str):
     
     config_completed = st.session_state.app_state.config_completed
     input_completed = st.session_state.app_state.input_completed
-    
+
     render_step_indicator(3, "Generate Calendar", config_completed, input_completed)
     
     st.markdown('<div class="section-container">', unsafe_allow_html=True)
@@ -598,7 +598,7 @@ def main():
     # Show next steps only if previous steps are completed
     if st.session_state.app_state.config_completed and st.session_state.app_state.input_completed:
         if text_content:
-            render_preview_section(text_content)
+            # render_preview_section(text_content)
             render_conversion_section(text_content, api_key, model, language)
     elif not st.session_state.app_state.config_completed:
         st.info("👆 Please complete Step 1 to continue")
