@@ -26,7 +26,9 @@ def main(
             ..., envvar="TXT2ICS_API_KEY", help="API key for the LLM service."
         ),
     ],
-    model: Annotated[str, typer.Option(help="What model to use.")] = "gpt-4.1-nano",
+    model: Annotated[
+        str, typer.Option(help="What model to use.")
+    ] = "gpt-4.1-nano",
     language: Annotated[
         str,
         typer.Option(

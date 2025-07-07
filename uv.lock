@@ -1715,6 +1715,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "icalendar" },
+    { name = "litellm" },
     { name = "promptic" },
     { name = "python-dotenv" },
     { name = "streamlit" },
@@ -1745,6 +1746,7 @@ jga-dev = [
 [package.metadata]
 requires-dist = [
     { name = "icalendar", specifier = ">=6.3.1" },
+    { name = "litellm", specifier = ">=1.74.0" },
     { name = "promptic", specifier = ">=5.5.1" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "streamlit", specifier = ">=1.46.1" },

@@ -2,7 +2,7 @@ import os
 from rich import print
 from promptic import Promptic
 from dotenv import load_dotenv
-from .system_prompt import prompt as sys_prompt
+from text2ics.system_prompt import prompt as sys_prompt
 import icalendar
 from tenacity import (
     retry,
@@ -28,7 +28,7 @@ def call_llm_with_retry(
     Call the LLM with retry logic for handling rate limits.
     """
     output_language = (
-        language
+        f"the produced calendar content language must be in {language}"
         if language is not None
         else "Output language must be the same as the dominant language of the event content"
     )
@@ -56,7 +56,6 @@ def process_content(
     promptic = Promptic(model=model, api_key=api_key)
     complete = False
     ics_calendar_str = ""
-
     while not complete:
         try:
             # Call the LLM with retry logic
