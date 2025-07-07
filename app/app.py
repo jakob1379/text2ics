@@ -270,48 +270,20 @@ def render_input_section():
     return manual_text, uploaded_file
 
 
-# def render_preview_section(text_content: str):
-#     """Render content preview section"""
-#     if not text_content:
-#         return
-
-#     config_completed = st.session_state.app_state.config_completed
-#     input_completed = st.session_state.app_state.input_completed
-#     conversion_started = getattr(st.session_state.app_state, 'conversion_started', False)
-
-#     render_step_indicator(3, "Generate Calendar", config_completed, input_completed, conversion_started)
-
-#     st.markdown('<div class="section-container">', unsafe_allow_html=True)
-#     st.markdown('<div class="section-header">👀 Content Preview</div>', unsafe_allow_html=True)
-
-#     # Show content stats
-#     col1, col2, col3 = st.columns(3)
-#     with col1:
-#         st.metric("Characters", len(text_content))
-#     with col2:
-#         st.metric("Words", len(text_content.split()))
-#     with col3:
-#         st.metric("Lines", len(text_content.split('\n')))
-
-#     # Show preview
-#     preview_text = text_content[:500] + "..." if len(text_content) > 500 else text_content
-#     st.text_area("Content Preview", preview_text, height=150, disabled=True)
-
-#     st.markdown('</div>', unsafe_allow_html=True)
-
-
 @st.cache_data(ttl=3600)
 def process_content_cached(
     content: str,
     api_key: str,
     model: str,
     language: Optional[str],
-    process_content_func,
+    _process_content_func,
 ):
     """Cache expensive API calls"""
-    return process_content_func(
+    # with st.spinner("🤖 Using amazing tooling to extract your calendar events!"):
+    result = _process_content_func(
         content=content, api_key=api_key, model=model, language=language
-    )
+        )
+    return result
 
 
 def render_conversion_section(
