@@ -38,11 +38,6 @@ def init_session_state():
     if "file_hash" not in st.session_state:
         st.session_state.file_hash = None
 
-    if "result_cache" not in st.session_state:
-        st.session_state.result_cache = {}
-
-    if "current_step" not in st.session_state:
-        st.session_state.current_step = 1
 
 
 @st.cache_data(ttl=3600)
@@ -51,15 +46,9 @@ def get_file_content(file_bytes: bytes) -> str:
     return file_bytes.decode("utf-8")
 
 
-@st.cache_data(ttl=3600)
 def validate_api_key(api_key: str) -> bool:
     """Basic API key validation"""
     return len(api_key.strip()) > 10
-
-
-def create_file_hash(content: str) -> str:
-    """Create hash for content caching"""
-    return hashlib.md5(content.encode()).hexdigest()
 
 
 def render_header():
@@ -139,10 +128,8 @@ def render_config_section():
         conversion_started,
     )
 
-    # Determine if this expander should be expanded
-    expand_config = not config_completed or st.session_state.current_step == 1
-
-    with st.expander("🔧 Setup API Configuration", expanded=expand_config):
+    # Expander is open if the configuration is not yet completed.
+    with st.expander("🔧 Setup API Configuration", expanded=not config_completed):
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
@@ -185,13 +172,9 @@ def render_config_section():
 
         # Update completion status
         if api_key and validate_api_key(api_key):
-            if not st.session_state.app_state.config_completed:
-                st.session_state.app_state.config_completed = True
-                st.session_state.current_step = 2
-                st.rerun()
+            st.session_state.app_state.config_completed = True
         else:
             st.session_state.app_state.config_completed = False
-            st.session_state.current_step = 1
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -221,7 +204,7 @@ def render_input_section():
         return "", None
 
     # Determine if this expander should be expanded - stay expanded until conversion starts
-    expand_input = not conversion_started or st.session_state.current_step == 2
+    expand_input = config_completed and not conversion_started
 
     with st.expander("📝 Add Event Content", expanded=expand_input):
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
@@ -278,14 +261,9 @@ def render_input_section():
 
         # Update completion status
         if manual_text and len(manual_text.strip()) > 10:
-            if not st.session_state.app_state.input_completed:
-                st.session_state.app_state.input_completed = True
-                st.session_state.current_step = 3
-                st.rerun()
+            st.session_state.app_state.input_completed = True
         else:
             st.session_state.app_state.input_completed = False
-            if config_completed:
-                st.session_state.current_step = 2
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -324,21 +302,24 @@ def render_input_section():
 
 @st.cache_data(ttl=3600)
 def process_content_cached(
-    content: str, api_key: str, model: str, language: Optional[str]
+    content: str,
+    api_key: str,
+    model: str,
+    language: Optional[str],
+    process_content_func,
 ):
     """Cache expensive API calls"""
-    try:
-        from text2ics.converter import process_content
-
-        return process_content(
-            content=content, api_key=api_key, model=model, language=language
-        )
-    except ImportError:
-        raise ImportError("text2ics package not found")
+    return process_content_func(
+        content=content, api_key=api_key, model=model, language=language
+    )
 
 
 def render_conversion_section(
-    text_content: str, api_key: str, model: str, language: str
+    text_content: str,
+    api_key: str,
+    model: str,
+    language: str,
+    process_content_func,
 ):
     """Render conversion section"""
     if not text_content or not api_key:
@@ -373,55 +354,44 @@ def render_conversion_section(
         # Mark conversion as started - this will cause section 2 to collapse
         st.session_state.app_state.conversion_started = True
 
-        # Create content hash for caching
-        content_hash = create_file_hash(
-            f"{text_content}{api_key}{model}{language}"
-        )
+        # Show progress
+        progress_bar = st.progress(0)
+        status_text = st.empty()
 
-        # Check cache first
-        if content_hash in st.session_state.result_cache:
-            st.success("📋 Using cached result")
-            ics_content = st.session_state.result_cache[content_hash]
-        else:
-            # Show progress
-            progress_bar = st.progress(0)
-            status_text = st.empty()
+        try:
+            status_text.text("🔄 Initializing conversion...")
+            progress_bar.progress(25)
+            time.sleep(0.5)
 
-            try:
-                status_text.text("🔄 Initializing conversion...")
-                progress_bar.progress(25)
-                time.sleep(0.5)
+            status_text.text("🤖 Processing...")
+            progress_bar.progress(50)
 
-                status_text.text("🤖 Processing...")
-                progress_bar.progress(50)
+            ics_content = process_content_cached(
+                text_content,
+                api_key,
+                model,
+                language if language else None,
+                process_content_func,
+            )
 
-                ics_content = process_content_cached(
-                    text_content, api_key, model, language if language else None
-                )
+            progress_bar.progress(75)
+            status_text.text("📅 Generating calendar...")
+            time.sleep(0.5)
 
-                progress_bar.progress(75)
-                status_text.text("📅 Generating calendar...")
-                time.sleep(0.5)
+            progress_bar.progress(100)
+            status_text.text("✅ Conversion complete!")
 
-                progress_bar.progress(100)
-                status_text.text("✅ Conversion complete!")
+            # Clear progress indicators
+            progress_bar.empty()
+            status_text.empty()
 
-                # Cache the result
-                st.session_state.result_cache[content_hash] = ics_content
-
-                # Clear progress indicators
-                progress_bar.empty()
-                status_text.empty()
-
-            except Exception as e:
-                progress_bar.empty()
-                status_text.empty()
-                st.error(f"❌ Conversion failed: {str(e)}")
-                st.info(
-                    "💡 Try checking your API key or simplifying the input text"
-                )
-                st.markdown("</div>", unsafe_allow_html=True)
-                return
+        except Exception as e:
+            progress_bar.empty()
+            status_text.empty()
+            st.error(f"❌ Conversion failed: {str(e)}")
+            st.info("💡 Try checking your API key or simplifying the input text")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
 
         # Display results
         st.subheader("📋 Generated ICS Calendar")
@@ -467,10 +437,10 @@ def main():
 
     # Check dependencies
     try:
-        from text2ics.converter import process_content
+        from text2ics import process_content
     except ImportError:
         st.error("❌ Missing dependency: 'text2ics' package not found")
-        st.info("💡 Install with: `pip install text2ics`")
+        st.info("💡 To install, run: `pip install -e .` from the project root.")
         st.stop()
 
     # Render UI
@@ -486,7 +456,9 @@ def main():
         and st.session_state.app_state.input_completed
     ):
         if text_content:
-            render_conversion_section(text_content, api_key, model, language)
+            render_conversion_section(
+                text_content, api_key, model, language, process_content
+            )
     elif not st.session_state.app_state.config_completed:
         st.info("👆 Please complete Step 1 to continue")
     elif not st.session_state.app_state.input_completed:
