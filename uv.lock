@@ -2048,7 +2048,7 @@ wheels = [
 [[package]]
 name = "text2ics"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "icalendar" },
     { name = "langchain" },
@@ -2057,6 +2057,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "streamlit" },
+    { name = "tenacity" },
     { name = "typer" },
 ]
 
@@ -2067,14 +2068,12 @@ dev = [
     { name = "pytest" },
     { name = "pytest-datadir" },
 ]
-jga = [
-    { name = "ipython" },
-]
 jga-dev = [
     { name = "black" },
     { name = "dap-python" },
     { name = "debugpy" },
     { name = "flake8" },
+    { name = "ipython" },
     { name = "isort" },
     { name = "mypy" },
     { name = "python-lsp-server", extra = ["all"] },
@@ -2091,6 +2090,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "streamlit", specifier = ">=1.46.1" },
+    { name = "tenacity", specifier = ">=9.1.2" },
     { name = "typer", specifier = ">=0.16.0" },
 ]
 
@@ -2101,12 +2101,12 @@ dev = [
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-datadir", specifier = ">=1.7.2" },
 ]
-jga = [{ name = "ipython", specifier = ">=9.4.0" }]
 jga-dev = [
     { name = "black", specifier = ">=25.1.0" },
     { name = "dap-python", specifier = ">=0.5.0" },
     { name = "debugpy", specifier = ">=1.8.14" },
     { name = "flake8", specifier = ">=7.1.2" },
+    { name = "ipython", specifier = ">=9.4.0" },
     { name = "isort", specifier = ">=6.0.1" },
     { name = "mypy", specifier = ">=1.16.1" },
     { name = "python-lsp-server", extras = ["all"], specifier = ">=1.12.2" },
