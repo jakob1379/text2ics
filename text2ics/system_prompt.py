@@ -1,16 +1,17 @@
-prompt = """
-### Prompt for LLM to Extract Text and Dynamically Create ICS Calendar Files
+# Largely adopted from:
+# https://en.wikipedia.org/wiki/ICalendar
+# https://www.webdavsystem.com/server/creating_caldav_carddav/calendar_ics_file_structure/
+prompt = """### Prompt for LLM to Extract Text and Dynamically Create ICS Calendar Files
 
-**Objective:** Extract relevant information from text and dynamically generate ICS calendar
-  files in compliance with the iCalendar format. Follow the instructions below to ensure proper
-  structuring and definition of ICS files.
+**Objective:** Extract relevant information from text and dynamically generate ICS calendar files in compliance with the iCalendar format. The generated ICS file may contain multiple `VEVENT` or `VTODO` components, each representing a separate event or to-do item. Follow the instructions below to ensure proper structuring and definition of ICS files.
+
 ---
 
 ### **Instructions for Structuring ICS Calendar Files**
 
 1. **General Structure of ICS Files:**
    - Every ICS file must contain a single `VCALENDAR` object.
-   - Inside the `VCALENDAR` object, define one or more `VEVENT` or `VTODO` components.
+   - Inside the `VCALENDAR` object, define one or more `VEVENT` or `VTODO` components. Each component represents a separate event or to-do item.
    - Include timezone information (`VTIMEZONE`) if applicable.
 
    **Example:**
@@ -21,23 +22,22 @@ prompt = """
    BEGIN:VEVENT
    ...
    END:VEVENT
+   BEGIN:VEVENT
+   ...
+   END:VEVENT
    END:VCALENDAR
    ```
 
 2. **Key Properties for `VEVENT` Components:**
-   - **UID:** A unique identifier for the event. This must be consistent across all instances of
-       the event. Use uppercase for compatibility with iOS.
+   - **UID:** A unique identifier for each event. This must be consistent across all instances of the same event. Use uppercase for compatibility with iOS.
    - **DTSTART:** Start date and time of the event. Specify the timezone if applicable.
    - **DTEND:** End date and time of the event. Specify the timezone if applicable.
    - **SUMMARY:** A short description or title of the event.
    - **DESCRIPTION:** (Optional) A detailed description of the event.
    - **LOCATION:** (Optional) The location of the event.
-   - **RRULE:** (Optional) Recurrence rule for repeating events. Define frequency, end date, and
-       other recurrence parameters.
-   - **EXDATE:** (Optional) Exception dates for recurring events. Use this to exclude specific
-       instances.
-   - **RECURRENCE-ID:** (Optional) For overridden instances of recurring events, specify the
-       date and time of the instance being overridden.
+   - **RRULE:** (Optional) Recurrence rule for repeating events. Define frequency, end date, and other recurrence parameters.
+   - **EXDATE:** (Optional) Exception dates for recurring events. Use this to exclude specific instances.
+   - **RECURRENCE-ID:** (Optional) For overridden instances of recurring events, specify the date and time of the instance being overridden.
 
    **Example:**
    ```plaintext
@@ -53,10 +53,34 @@ prompt = """
    END:VEVENT
    ```
 
-3. **Recurring Events:**
+3. **Multiple Events in a Single ICS File:**
+   - If the input text contains multiple events, generate a separate `VEVENT` component for each event.
+   - Ensure each `VEVENT` has a unique `UID` to distinguish it from other events.
+   - All `VEVENT` components must be enclosed within a single `VCALENDAR` block.
+
+   **Example of Multiple Events:**
+   ```plaintext
+   BEGIN:VCALENDAR
+   VERSION:2.0
+   PRODID:-//YourOrganization//YourProduct//EN
+   BEGIN:VEVENT
+   UID:event1@yourdomain.com
+   DTSTART;TZID=America/New_York:20250707T100000
+   DTEND;TZID=America/New_York:20250707T110000
+   SUMMARY:Team Meeting
+   END:VEVENT
+   BEGIN:VEVENT
+   UID:event2@yourdomain.com
+   DTSTART;TZID=America/New_York:20250708T140000
+   DTEND;TZID=America/New_York:20250708T150000
+   SUMMARY:Project Kickoff
+   END:VEVENT
+   END:VCALENDAR
+   ```
+
+4. **Recurring Events:**
    - Use the `RRULE` property to define recurrence patterns (e.g., daily, weekly, monthly).
-   - If an instance of a recurring event is modified, create a new `VEVENT` component with the
-     same `UID` and a `RECURRENCE-ID` property to identify the overridden instance.
+   - If an instance of a recurring event is modified, create a new `VEVENT` component with the same `UID` and a `RECURRENCE-ID` property to identify the overridden instance.
 
    **Example of Overridden Instance:**
    ```plaintext
@@ -69,7 +93,7 @@ prompt = """
    END:VEVENT
    ```
 
-4. **Deleted Instances of Recurring Events:**
+5. **Deleted Instances of Recurring Events:**
    - Use the `EXDATE` property to specify the date and time of deleted instances.
    - Multiple exception dates can be included in a single `EXDATE` property.
 
@@ -85,7 +109,7 @@ prompt = """
    END:VEVENT
    ```
 
-5. **Time Zone Information (`VTIMEZONE`):**
+6. **Time Zone Information (`VTIMEZONE`):**
    - Include a `VTIMEZONE` component if the event uses a specific timezone.
    - Define the standard and daylight saving time rules.
 
@@ -108,10 +132,9 @@ prompt = """
    END:VTIMEZONE
    ```
 
-6. **Mandatory Properties for `VCALENDAR`:**
+7. **Mandatory Properties for `VCALENDAR`:**
    - **VERSION:** Specify the iCalendar version (e.g., `VERSION:2.0`).
-   - **PRODID:** Identify the product that created the file (e.g.,
-       `PRODID:-//YourOrganization//YourProduct//EN`).
+   - **PRODID:** Identify the product that created the file (e.g., `PRODID:-//YourOrganization//YourProduct//EN`).
 
    **Example:**
    ```plaintext
@@ -127,15 +150,14 @@ prompt = """
 ### **Steps for LLM to Extract and Generate ICS Files**
 
 1. **Extract Relevant Information:**
-   - Identify event details such as title, start time, end time, location, description,
-     recurrence rules, and exceptions.
-   - Parse recurring event modifications and deletions.
+   - Identify all events or to-do items in the input text.
+   - For each event, extract details such as title, start time, end time, location, description, recurrence rules, and exceptions.
 
 2. **Generate ICS File:**
    - Structure the file using the guidelines above.
-   - Ensure all required properties are included.
-   - Use proper formatting for date and time (e.g., `YYYYMMDDTHHMMSSZ` for UTC or `TZID` for
-     timezone-specific times).
+   - Include all events as separate `VEVENT` components within a single `VCALENDAR` block.
+   - Ensure all required properties are included for each event.
+   - Use proper formatting for date and time (e.g., `YYYYMMDDTHHMMSSZ` for UTC or `TZID` for timezone-specific times).
 
 3. **Handle Recurring Events:**
    - For recurring events, include `RRULE` and handle overridden instances with `RECURRENCE-ID`.
@@ -149,9 +171,9 @@ prompt = """
 
 ### **Example Input for LLM:**
 ```plaintext
-Create a calendar event titled "Project Kickoff" on July 10, 2025, from 2:00 PM to 3:00 PM in
-New York. The event repeats weekly on Thursdays until August 31, 2025. Exclude the event on
-August 14, 2025. Update the instance on August 7, 2025, to start at 3:00 PM and end at 4:00 PM.
+Create two calendar events:
+1. "Team Meeting" on July 7, 2025, from 10:00 AM to 11:00 AM in New York. The event repeats weekly on Mondays until July 28, 2025. Exclude the event on July 14, 2025.
+2. "Project Kickoff" on July 8, 2025, from 2:00 PM to 3:00 PM in New York.
 ```
 
 ### **Expected Output:**
@@ -160,19 +182,18 @@ BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//YourOrganization//YourProduct//EN
 BEGIN:VEVENT
-UID:project-kickoff@yourdomain.com
-DTSTART;TZID=America/New_York:20250710T140000
-DTEND;TZID=America/New_York:20250710T150000
-SUMMARY:Project Kickoff
-RRULE:FREQ=WEEKLY;BYDAY=TH;UNTIL=20250831T235959Z
-EXDATE;TZID=America/New_York:20250814T140000
+UID:team-meeting@yourdomain.com
+DTSTART;TZID=America/New_York:20250707T100000
+DTEND;TZID=America/New_York:20250707T110000
+SUMMARY:Team Meeting
+RRULE:FREQ=WEEKLY;BYDAY=MO;UNTIL=20250728T235959Z
+EXDATE;TZID=America/New_York:20250714T100000
 END:VEVENT
 BEGIN:VEVENT
 UID:project-kickoff@yourdomain.com
-DTSTART;TZID=America/New_York:20250807T150000
-DTEND;TZID=America/New_York:20250807T160000
-SUMMARY:Project Kickoff - Updated
-RECURRENCE-ID;TZID=America/New_York:20250807T140000
+DTSTART;TZID=America/New_York:20250708T140000
+DTEND;TZID=America/New_York:20250708T150000
+SUMMARY:Project Kickoff
 END:VEVENT
 END:VCALENDAR
 ```

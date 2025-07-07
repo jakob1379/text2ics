@@ -1,0 +1,18 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//YourOrganization//YourProduct//EN
+BEGIN:VEVENT
+UID:snaptun-endelave-20250718@yourdomain.com
+DTSTART;TZID=Europe/Copenhagen:20250718T110500
+DTEND;TZID=Europe/Copenhagen:20250718T120500
+SUMMARY:Færgetransport fra Snaptun til Endelave
+DESCRIPTION:Afgang fra Snaptun til Endelave.
+END:VEVENT
+BEGIN:VEVENT
+UID:endelave-snaptun-20250720@yourdomain.com
+DTSTART;TZID=Europe/Copenhagen:20250720T173000
+DTEND;TZID=Europe/Copenhagen:20250720T183000
+SUMMARY:Færgetransport fra Endelave til Snaptun
+DESCRIPTION:Retur fra Endelave til Snaptun.
+END:VEVENT
+END:VCALENDAR

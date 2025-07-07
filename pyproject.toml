@@ -21,6 +21,7 @@ authors = [
 
 requires-python = ">=3.13.4"
 dependencies = [
+    "icalendar>=6.3.1",
     "langchain>=0.3.26",
     "llm>=0.26",
     "promptic>=5.5.1",
