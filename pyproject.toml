@@ -17,7 +17,6 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Office/Business :: Scheduling",
     "Topic :: Text Processing",
-    "Framework :: Streamlit",
     "Environment :: Console",
     "Environment :: Web Environment",
 ]
@@ -49,6 +48,10 @@ dev = [
     "pytest-datadir>=1.7.2",
     "ruff>=0.12.2",
 ]
+st = [
+    "streamlit>=1.46.1",
+    "text2ics",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -70,6 +73,9 @@ all = [ {ref="fmt"}, {ref="lint"}, {ref="check"}, {ref="test"} ]
 # (i.e. something we can distribute for others to use)
 # uncomment this to use project.scripts
 package = true
+
+[tool.uv.sources]
+text2ics = { workspace = true }
 
 [tool.ruff]
 target-version = "py313"
