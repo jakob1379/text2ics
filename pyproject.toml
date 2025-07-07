@@ -58,11 +58,11 @@ build-backend = "hatchling.build"
 # tell uv we're building a package
 # (i.e. something we can distribute for others to use)
 # uncomment this to use project.scripts
-# package = true
+package = true
 
-# [project.scripts]
-# running `postmodern` will run the `postmodern.main` function
-# postmodern = "postmodern.hello:main"
+[project.scripts]
+# running `text2ics` will run the `text2ics.cli:app` function
+text2ics = "text2ics.cli:app"
 
 [tool.ruff]
 target-version = "py313"
