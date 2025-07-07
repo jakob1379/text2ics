@@ -6,6 +6,7 @@ import time
 from dataclasses import dataclass
 from style import css
 
+st.set_page_config(initial_sidebar_state="collapsed")
 
 # Custom CSS for professional styling
 def load_custom_css():
