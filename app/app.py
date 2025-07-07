@@ -24,6 +24,8 @@ class AppState:
     conversion_started: bool = (
         False  # New state to track if generate button was clicked
     )
+    last_cache_status: str = ""  # Track cache status for debug panel
+    last_processing_time: float = 0.0  # Track processing time
 
 
 def init_session_state():
@@ -34,10 +36,13 @@ def init_session_state():
         # Handle existing session state that might not have the new field
         if not hasattr(st.session_state.app_state, "conversion_started"):
             st.session_state.app_state.conversion_started = False
+        if not hasattr(st.session_state.app_state, "last_cache_status"):
+            st.session_state.app_state.last_cache_status = ""
+        if not hasattr(st.session_state.app_state, "last_processing_time"):
+            st.session_state.app_state.last_processing_time = 0.0
 
     if "file_hash" not in st.session_state:
         st.session_state.file_hash = None
-
 
 
 @st.cache_data(ttl=3600)
@@ -279,11 +284,54 @@ def process_content_cached(
     _process_content_func,
 ):
     """Cache expensive API calls"""
-    # with st.spinner("🤖 Using amazing tooling to extract your calendar events!"):
     result = _process_content_func(
         content=content, api_key=api_key, model=model, language=language
-        )
+    )
     return result
+
+
+def render_cache_controls():
+    """Add cache management controls to sidebar"""
+    with st.sidebar:
+        st.markdown("### 🔧 Debug Panel")
+        
+        # Cache controls
+        st.markdown("**Cache Management**")
+        if st.button("🗑️ Clear Cache", help="Clear all cached API responses"):
+            process_content_cached.clear()
+            st.session_state.app_state.last_cache_status = ""
+            st.session_state.app_state.last_processing_time = 0.0
+            st.success("✅ Cache cleared!")
+            st.rerun()
+        
+        # Show last operation info
+        if st.session_state.app_state.last_cache_status:
+            st.markdown("**Last Operation**")
+            st.markdown(
+                f'<div class="status-indicator status-info">'
+                f'{st.session_state.app_state.last_cache_status}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            
+            if st.session_state.app_state.last_processing_time > 0:
+                st.metric(
+                    "Processing Time", 
+                    f"{st.session_state.app_state.last_processing_time:.2f}s"
+                )
+        
+        # Show cache stats
+        st.markdown("**Cache Info**")
+        st.info("Cache TTL: 1 hour")
+        
+        # Show current session state for debugging
+        with st.expander("🔍 Session Debug", expanded=False):
+            st.write("**App State:**")
+            st.json({
+                "config_completed": st.session_state.app_state.config_completed,
+                "input_completed": st.session_state.app_state.input_completed,
+                "conversion_started": st.session_state.app_state.conversion_started,
+            })
 
 
 def render_conversion_section(
@@ -338,6 +386,9 @@ def render_conversion_section(
             status_text.text("🤖 Processing...")
             progress_bar.progress(50)
 
+            # Track timing for cache feedback
+            start_time = time.time()
+            
             ics_content = process_content_cached(
                 text_content,
                 api_key,
@@ -345,6 +396,15 @@ def render_conversion_section(
                 language if language else None,
                 process_content_func,
             )
+            
+            processing_time = time.time() - start_time
+            
+            # Update debug info
+            st.session_state.app_state.last_processing_time = processing_time
+            if processing_time < 1.0:
+                st.session_state.app_state.last_cache_status = "⚡ Cache Hit"
+            else:
+                st.session_state.app_state.last_cache_status = "🔄 New Generation"
 
             progress_bar.progress(75)
             status_text.text("📅 Generating calendar...")
@@ -400,7 +460,7 @@ def main():
         page_title="Text to ICS Converter",
         page_icon="📅",
         layout="wide",
-        initial_sidebar_state="collapsed",
+        initial_sidebar_state="expanded",  # Changed to show debug panel
     )
 
     # Initialize app
@@ -414,6 +474,9 @@ def main():
         st.error("❌ Missing dependency: 'text2ics' package not found")
         st.info("💡 To install, run: `pip install -e .` from the project root.")
         st.stop()
+
+    # Add debug panel to sidebar
+    render_cache_controls()
 
     # Render UI
     render_header()
