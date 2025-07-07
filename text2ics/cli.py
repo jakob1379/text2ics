@@ -3,7 +3,6 @@ from pathlib import Path
 from typing_extensions import Annotated
 from rich import print
 
-from .converter import process_content
 
 app = typer.Typer()
 
@@ -24,19 +23,20 @@ def main(
     api_key: Annotated[
         str,
         typer.Option(
-            ...,
             envvar="TXT2ICS_API_KEY",
             help="API key for the LLM service.",
         ),
     ],
     language: Annotated[
         str,
-        typer.Option(help="Specify the output language for the ICS file."),
+        typer.Option(help="Specify the output language for the ICS file. is not set language is guessed from content"),
     ] = None,
 ):
     """
     Reads input text from a file, processes it to generate an ICS calendar, and prints the result.
     """
+    from .converter import process_content
+
     with open(input, "r", encoding="utf-8") as f:
         text_from_file = f.read()
 
