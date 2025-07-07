@@ -1,6 +1,6 @@
 [project]
 name = "text2ics"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Python tool to convert unstructured text into an ICS calendar file using an LLM."
 readme = "README.md"
 authors = [
