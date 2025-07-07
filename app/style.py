@@ -13,7 +13,7 @@ css = """
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 2rem 0;
             margin: -1rem -1rem 2rem -1rem;
-            border-radius: 0 0 20px 20px;
+            border-radius: 0px 20px 0px 20px ;
             color: white;
             text-align: center;
         }
@@ -180,8 +180,12 @@ css = """
             margin: 1rem 0;
         }
         
-        /* Hide default streamlit elements */
-        #MainMenu {visibility: hidden;}
+        /* default streamlit elements */
+        /* Make header transparent */
+        [data-testid="stHeader"] {
+            background: transparent;
+        }
+        MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         .stDeployButton {display: none;}
     </style>
