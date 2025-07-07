@@ -21,7 +21,9 @@ load_dotenv()
     stop=stop_after_attempt(5),  # Retry up to 5 times
     retry=retry_if_exception_type(RateLimitError),  # Retry on rate limit errors
 )
-def call_llm_with_retry(promptic: Promptic, content: str, language: str = None) -> str:
+def call_llm_with_retry(
+    promptic: Promptic, content: str, language: str = None
+) -> str:
     """
     Call the LLM with retry logic for handling rate limits.
     """
@@ -56,7 +58,7 @@ def process_content(content: str, api_key: str, language: str = None) -> str:
     while not complete:
         try:
             # Call the LLM with retry logic
-            ics_calendar_str = call_llm_with_retry(promptic, content, language)
+            ics_calendar_str = call_llm_with_retry(promptic, content, model, language)
 
             # Validate the generated ICS calendar by parsing it.
             icalendar.Calendar.from_ical(ics_calendar_str)
@@ -69,5 +71,3 @@ def process_content(content: str, api_key: str, language: str = None) -> str:
     calendar = icalendar.Calendar.from_ical(ics_calendar_str)
     calendar["PRODID"] = f"-//jgalabs//text2ics {version('text2ics')}//EN"
     return calendar.to_ical().decode("utf-8")
-
-

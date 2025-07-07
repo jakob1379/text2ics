@@ -23,13 +23,15 @@ def main(
     api_key: Annotated[
         str,
         typer.Option(
-            envvar="TXT2ICS_API_KEY",
-            help="API key for the LLM service.",
+            envvar="TXT2ICS_API_KEY", help="API key for the LLM service."
         ),
     ],
+    model: Annotated[str, typer.Option(help="What model to use.")] = "gpt-4.1-nano", 
     language: Annotated[
-        str,
-        typer.Option(help="Specify the output language for the ICS file. is not set language is guessed from content"),
+        str,"gpt-4.1-nano""gpt-4.1-nano"
+        typer.Option(
+            help="Specify the output language for the ICS file. is not set language is guessed from content"
+        ),
     ] = None,
 ):
     """
@@ -40,7 +42,7 @@ def main(
     with open(input, "r", encoding="utf-8") as f:
         text_from_file = f.read()
 
-    ics_calendar = process_content(text_from_file, api_key, language)
+    ics_calendar = process_content(text_from_file, api_key, model, language)
     print(ics_calendar)
 
 
