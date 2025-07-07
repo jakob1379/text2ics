@@ -37,6 +37,18 @@ dev = [
     "pytest>=8.3.4",
     "pytest-datadir>=1.7.2",
 ]
+jga-dev = [
+    "ipython>=9.4.0",
+    "black>=25.1.0",
+    "dap-python>=0.5.0",
+    "debugpy>=1.8.14",
+    "flake8>=7.1.2",
+    "isort>=6.0.1",
+    "mypy>=1.16.1",
+    "python-lsp-server[all]>=1.12.2",
+    "rich>=14.0.0",
+    "ruff>=0.12.2",
+]
 
 [build-system]
 requires = ["hatchling"]
