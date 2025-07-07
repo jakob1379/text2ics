@@ -45,20 +45,22 @@ def call_llm_with_retry(
     return response.choices[0].message.content
 
 
-def process_content(content: str, api_key: str, language: str = None) -> str:
+def process_content(
+    content: str, api_key: str, model: str, language: str = None
+) -> str:
     """
     Process the content using the LLM and ensure the generated ICS calendar is valid.
     Retries until a valid calendar is produced.
     """
     # Initialize a Promptic instance with the dynamic API key and model
-    promptic = Promptic(model="gpt-4.1-nano", api_key=api_key)
+    promptic = Promptic(model=model, api_key=api_key)
     complete = False
     ics_calendar_str = ""
 
     while not complete:
         try:
             # Call the LLM with retry logic
-            ics_calendar_str = call_llm_with_retry(promptic, content, model, language)
+            ics_calendar_str = call_llm_with_retry(promptic, content, language)
 
             # Validate the generated ICS calendar by parsing it.
             icalendar.Calendar.from_ical(ics_calendar_str)
