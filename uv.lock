@@ -1316,6 +1316,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pyright"
+version = "1.1.402"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nodeenv" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/aa/04/ce0c132d00e20f2d2fb3b3e7c125264ca8b909e693841210534b1ea1752f/pyright-1.1.402.tar.gz", hash = "sha256:85a33c2d40cd4439c66aa946fd4ce71ab2f3f5b8c22ce36a623f59ac22937683", size = 3888207, upload-time = "2025-06-11T08:48:35.759Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fe/37/1a1c62d955e82adae588be8e374c7f77b165b6cb4203f7d581269959abbc/pyright-1.1.402-py3-none-any.whl", hash = "sha256:2c721f11869baac1884e846232800fe021c33f1b4acb3929cff321f7ea4e2982", size = 5624004, upload-time = "2025-06-11T08:48:33.998Z" },
+]
+
+[[package]]
 name = "pytest"
 version = "8.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1727,8 +1740,10 @@ dependencies = [
 dev = [
     { name = "poethepoet" },
     { name = "pre-commit" },
+    { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-datadir" },
+    { name = "ruff" },
 ]
 jga-dev = [
     { name = "black" },
@@ -1758,8 +1773,10 @@ requires-dist = [
 dev = [
     { name = "poethepoet", specifier = ">=0.32.0" },
     { name = "pre-commit", specifier = ">=4.2.0" },
+    { name = "pyright", specifier = ">=1.1.402" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-datadir", specifier = ">=1.7.2" },
+    { name = "ruff", specifier = ">=0.12.2" },
 ]
 jga-dev = [
     { name = "black", specifier = ">=25.1.0" },

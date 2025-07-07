@@ -134,7 +134,9 @@ def render_config_section():
     )
 
     # Expander is open if the configuration is not yet completed.
-    with st.expander("🔧 Setup API Configuration", expanded=not config_completed):
+    with st.expander(
+        "🔧 Setup API Configuration", expanded=not config_completed
+    ):
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
@@ -294,7 +296,7 @@ def render_cache_controls():
     """Add cache management controls to sidebar"""
     with st.sidebar:
         st.markdown("### 🔧 Debug Panel")
-        
+
         # Cache controls
         st.markdown("**Cache Management**")
         if st.button("🗑️ Clear Cache", help="Clear all cached API responses"):
@@ -303,35 +305,37 @@ def render_cache_controls():
             st.session_state.app_state.last_processing_time = 0.0
             st.success("✅ Cache cleared!")
             st.rerun()
-        
+
         # Show last operation info
         if st.session_state.app_state.last_cache_status:
             st.markdown("**Last Operation**")
             st.markdown(
                 f'<div class="status-indicator status-info">'
-                f'{st.session_state.app_state.last_cache_status}'
-                f'</div>',
+                f"{st.session_state.app_state.last_cache_status}"
+                f"</div>",
                 unsafe_allow_html=True,
             )
-            
+
             if st.session_state.app_state.last_processing_time > 0:
                 st.metric(
-                    "Processing Time", 
-                    f"{st.session_state.app_state.last_processing_time:.2f}s"
+                    "Processing Time",
+                    f"{st.session_state.app_state.last_processing_time:.2f}s",
                 )
-        
+
         # Show cache stats
         st.markdown("**Cache Info**")
         st.info("Cache TTL: 1 hour")
-        
+
         # Show current session state for debugging
         with st.expander("🔍 Session Debug", expanded=False):
             st.write("**App State:**")
-            st.json({
-                "config_completed": st.session_state.app_state.config_completed,
-                "input_completed": st.session_state.app_state.input_completed,
-                "conversion_started": st.session_state.app_state.conversion_started,
-            })
+            st.json(
+                {
+                    "config_completed": st.session_state.app_state.config_completed,
+                    "input_completed": st.session_state.app_state.input_completed,
+                    "conversion_started": st.session_state.app_state.conversion_started,
+                }
+            )
 
 
 def render_conversion_section(
@@ -388,7 +392,7 @@ def render_conversion_section(
 
             # Track timing for cache feedback
             start_time = time.time()
-            
+
             ics_content = process_content_cached(
                 text_content,
                 api_key,
@@ -396,15 +400,17 @@ def render_conversion_section(
                 language if language else None,
                 process_content_func,
             )
-            
+
             processing_time = time.time() - start_time
-            
+
             # Update debug info
             st.session_state.app_state.last_processing_time = processing_time
             if processing_time < 1.0:
                 st.session_state.app_state.last_cache_status = "⚡ Cache Hit"
             else:
-                st.session_state.app_state.last_cache_status = "🔄 New Generation"
+                st.session_state.app_state.last_cache_status = (
+                    "🔄 New Generation"
+                )
 
             progress_bar.progress(75)
             status_text.text("📅 Generating calendar...")
@@ -421,7 +427,9 @@ def render_conversion_section(
             progress_bar.empty()
             status_text.empty()
             st.error(f"❌ Conversion failed: {str(e)}")
-            st.info("💡 Try checking your API key or simplifying the input text")
+            st.info(
+                "💡 Try checking your API key or simplifying the input text"
+            )
             st.markdown("</div>", unsafe_allow_html=True)
             return
 

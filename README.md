@@ -7,9 +7,11 @@ It provides both a command-line interface (CLI) and a Streamlit web application.
 Ensure you have Python installed, then clone the repository and install the dependencies.
 
 ```bash
-git clone https://github.com/your-username/text2ics.git
-cd text2ics
-uv sync
+# using pip
+pip install text2ics
+
+# or run directly with uv
+uvx text2ics
 ```
 
 You will also need an API key for a compatible LLM service (like OpenAI).
@@ -21,7 +23,7 @@ You will also need an API key for a compatible LLM service (like OpenAI).
 The CLI allows you to convert a text file to an ICS file directly. Set your API key as an environment variable first.
 
 ```bash
-export TXT2ICS_API_KEY="your-api-key"
+export <OPENAI|CLAUDE|GEMINI>_API_KEY="your-api-key"
 text2ics path/to/your/textfile.txt > events.ics
 ```
 
