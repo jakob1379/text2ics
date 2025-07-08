@@ -189,7 +189,8 @@ def render_config_section():
             )
 
             language = st.text_input(
-                "Output Language (Optional)",
+                "Output Language",
+                placeholder="Output Language (Optional)",
                 help="e.g., 'en', 'es', 'fr' - leave blank for auto-detection",
                 key="language_input",
             )
