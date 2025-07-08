@@ -64,15 +64,21 @@ build-backend = "hatchling.build"
 
 [tool.poe.tasks]
 # run with eg `uv run poe fmt`
-fmt = "ruff format"
-lint = "ruff check --fix"
-check = "pyright"
-test = "pytest"
+fmt = { cmd = "ruff format", help = "Formats the code using Ruff." }
+lint = { cmd = "ruff check --fix", help = "Checks the code for linting issues and fixes them using Ruff." }
+check = { cmd = "pyright", help = "Performs type checking using Pyright." }
+test = { cmd = "pytest", help = "Runs the test suite using Pytest." }
+
 # run all the above
-all = [ {ref="fmt"}, {ref="lint"}, {ref="check"}, {ref="test"} ]
-"ci:fmt" = "ruff format --check"  # fail if not formatted
-"ci:lint" = "ruff check"
-app = "uv run --extra streamlit streamlit run app/app.py --server.runOnSave true"
+all = { ref = ["fmt", "lint", "check", "test"], help = "Runs all tasks: fmt, lint, check, and test." }
+
+# ci
+"ci:fmt" = { cmd = "ruff format --check", help = "Checks if the code is properly formatted using Ruff." }
+"ci:lint" = { cmd = "ruff check", help = "Checks the code for linting issues without fixing them." }
+
+# local dev
+app = { cmd = "uv run --extra streamlit streamlit run app/app.py --server.runOnSave true", help = "Runs the Streamlit app with live reload enabled." }
+
 
 [tool.uv]
 # tell uv we're building a package
