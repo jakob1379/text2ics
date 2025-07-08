@@ -20,6 +20,10 @@ def main():
         page_icon="📅",
         layout=None,
         initial_sidebar_state="collapsed",
+        menu_items={
+            "Report a Bug": "https://github.com/jakob1379/text2ics/issues",
+            "About": "https://github.com/jakob1379/text2ics",
+        }
     )
 
     # Initialize app
