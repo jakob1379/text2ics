@@ -23,7 +23,8 @@ def main(
     api_key: Annotated[
         str,
         typer.Option(
-            ..., envvar="TXT2ICS_API_KEY", help="API key for the LLM service."
+            ..., envvar=[f"{vendor}_API_KEY" for vendor in ["OPENAI","CLAUDE","GEMINI", "TEXT2ICS"]],
+            help="API key for the LLM service."
         ),
     ],
     model: Annotated[
