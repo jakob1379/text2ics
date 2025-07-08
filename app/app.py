@@ -18,7 +18,7 @@ def main():
     st.set_page_config(
         page_title="Text to ICS Converter",
         page_icon="📅",
-        layout="wide",
+        layout=None,
         initial_sidebar_state="collapsed",
     )
 
