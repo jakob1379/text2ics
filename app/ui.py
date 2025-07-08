@@ -134,8 +134,7 @@ def render_config_section():
         </style>
         """, unsafe_allow_html=True)
         
-        st.markdown("**Quick access to API key management:**")
-        refs = st.columns(3)
+        st.markdown("**Quick access to some  API key management pages:**")
         links = {
             "OpenAI": {
                 "url": "https://platform.openai.com/settings/organization/api-keys",
@@ -150,9 +149,10 @@ def render_config_section():
                 "logo": "app/assets/Google_Gemini_logo.svg"
             },
         }
+        refs = st.columns(len(links))
 
         
-        for col, (name, info) in zip(refs[:3], links.items()):
+        for col, (name, info) in zip(refs[:4], links.items()):
             with col:
                 # Convert SVG to base64
                 logo_b64 = get_image_base64(info["logo"])
@@ -213,7 +213,7 @@ def render_config_section():
                     "gemini-2.5-flash-lite-preview-06-17",
                 ],
                 index=0,
-                help="Models are not limited to the suggestion. Choose a model compatible with promptic/litellm",
+                help="See all valid models here: [LitLLM Providers](https://docs.litellm.ai/docs/providers)",
                 key="model_select",
             )
 
