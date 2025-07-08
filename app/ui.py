@@ -118,21 +118,6 @@ def render_config_section():
         "🔧 Setup API Configuration", expanded=not config_completed
     ):
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
-        # Custom CSS for button styling
-        st.markdown("""
-        <style>
-        .logo-button {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 8px !important;
-        }
-        .logo-button img {
-        width: 20px !important;
-        height: 20px !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
         
         st.markdown("**Quick access to some  API key management pages:**")
         links = {
@@ -160,21 +145,7 @@ def render_config_section():
                 # Create button with logo
                 st.markdown(f"""
                 <a href="{info['url']}" target="_blank" style="text-decoration: none;">
-                    <div style="
-                        border: 1px solid #464853;
-                        border-radius: 0.5rem;
-                        padding: 0.5rem 1rem;
-                        text-align: center;
-                        color: white;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        gap: 8px;
-                        width: 100%;
-                        box-sizing: border-box;
-                        transition: background-color 0.3s;
-                    " onmouseover="this.style.backgroundColor='#464853'" 
-                       onmouseout="this.style.backgroundColor='#262730'">
+                    <div class="logo-button">
                         <img src="data:image/svg+xml;base64,{logo_b64}" width="auto" height="20">
                     </div>
                 </a>
