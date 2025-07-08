@@ -47,7 +47,7 @@ def call_llm_with_retry(
 
 def process_content(
     content: str, api_key: str, model: str, language: str = None
-) -> str:
+) -> icalendar.cal.Calendar:
     """
     Process the content using the LLM and ensure the generated ICS calendar is valid.
     Retries until a valid calendar is produced.
@@ -71,4 +71,4 @@ def process_content(
 
     calendar = icalendar.Calendar.from_ical(ics_calendar_str)
     calendar["PRODID"] = f"-//jgalabs//text2ics {version('text2ics')}//EN"
-    return calendar.to_ical().decode("utf-8")
+    return calendar

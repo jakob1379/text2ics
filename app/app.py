@@ -50,7 +50,7 @@ def get_file_content(file_bytes: bytes) -> str:
     """Cache file content reading"""
     return file_bytes.decode("utf-8")
 
-
+@st.cache_data(ttl=3600)
 def validate_api_key(api_key: str) -> bool:
     """Basic API key validation"""
     return len(api_key.strip()) > 10
@@ -195,6 +195,7 @@ def render_input_section():
     conversion_started = getattr(
         st.session_state.app_state, "conversion_started", False
     )
+
 
     render_step_indicator(
         2,
@@ -438,12 +439,13 @@ def render_conversion_section(
 
         # Show calendar preview
         with st.expander("View Calendar Content", expanded=True):
-            st.code(ics_content, language="text")
+            st.code(ics_content.to_ical().decode("utf-8"), language="text")
+            
 
         # Download button
         st.download_button(
             label="💾 Download Calendar File",
-            data=ics_content.encode("utf-8"),
+            data=ics_content.to_ical(),
             help="Open the downloaded file to quickly add it to you calender",
             file_name=f"calendar_{int(time.time())}.ics",
             mime="text/calendar",

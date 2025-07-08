@@ -47,7 +47,7 @@ def main(
     ics_calendar = process_content(
         content=text_from_file, api_key=api_key, model=model, language=language
     )
-    print(ics_calendar)
+    print(ics_calendar.to_ical().decode("utf-8"))
 
 
 if __name__ == "__main__":
