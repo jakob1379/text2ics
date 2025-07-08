@@ -164,10 +164,10 @@ def render_config_section():
 
         with col2:
             model = st.selectbox(
-                "Select Model",
-                options=["gpt-4.1-nano", "gpt-3.5-turbo", "gpt-4"],
+                "Suggested models",
+                options=["gpt-4.1-nano", "claude-3-5-haiku-latest", "gemini-2.5-flash-lite-preview-06-17"],
                 index=0,
-                help="Choose the LLM model for conversion",
+                help="Models are not limited to the suggestion. Choose a model compatible with promptic/litellm",
                 key="model_select",
             )
 
@@ -511,7 +511,7 @@ def main():
     st.markdown("---")
     st.markdown(
         "<div style='text-align: center; color: #64748b; font-size: 0.9rem;'>"
-        "Built with ❤️ using Streamlit • AI-powered calendar conversion"
+        f"Built with ❤️ using Streamlit • AI-powered calendar conversion • text2ics v{version('text2ics')}"
         "</div>",
         unsafe_allow_html=True,
     )
