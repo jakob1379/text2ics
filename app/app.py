@@ -5,8 +5,7 @@ import hashlib
 import time
 from dataclasses import dataclass
 from style import css
-
-st.set_page_config(initial_sidebar_state="collapsed")
+from importlib.metadata import version
 
 # Custom CSS for professional styling
 def load_custom_css():
@@ -251,7 +250,7 @@ def render_input_section():
                 if text_area_content
                 else "💡 Enter text or upload file"
             )
-
+            
         manual_text = st.text_area(
             "Event Text",
             value=text_area_content,
@@ -469,7 +468,7 @@ def main():
         page_title="Text to ICS Converter",
         page_icon="📅",
         layout="wide",
-        initial_sidebar_state="expanded",  # Changed to show debug panel
+        initial_sidebar_state="collapsed",
     )
 
     # Initialize app
