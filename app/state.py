@@ -1,5 +1,6 @@
-import streamlit as st
 from dataclasses import dataclass
+
+import streamlit as st
 
 
 @dataclass
@@ -11,11 +12,9 @@ class AppState:
     language: str = ""
     config_completed: bool = False
     input_completed: bool = False
-    conversion_started: bool = (
-        False  # New state to track if generate button was clicked
-    )
-    last_cache_status: str = ""  # Track cache status for debug panel
-    last_processing_time: float = 0.0  # Track processing time
+    conversion_started: bool = False
+    last_cache_status: str = ""
+    last_processing_time: float = 0.0
 
 
 def init_session_state():

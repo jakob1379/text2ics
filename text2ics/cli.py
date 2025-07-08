@@ -1,8 +1,8 @@
-import typer
 from pathlib import Path
-from typing_extensions import Annotated
-from rich import print
 
+import typer
+from rich import print
+from typing_extensions import Annotated
 
 app = typer.Typer()
 

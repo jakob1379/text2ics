@@ -1,6 +1,6 @@
-import streamlit as st
 from importlib.metadata import version
 
+import streamlit as st
 from state import init_session_state
 from ui import (
     load_custom_css,

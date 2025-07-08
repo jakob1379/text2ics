@@ -1,18 +1,19 @@
-import os
-from rich import print
-from promptic import Promptic
-from dotenv import load_dotenv
-from text2ics.system_prompt import prompt as sys_prompt
+from importlib.metadata import version
+
 import icalendar
+from dotenv import load_dotenv
 from icalendar import Calendar
+from litellm.exceptions import RateLimitError
+from promptic import Promptic
+from rich import print
 from tenacity import (
     retry,
-    wait_exponential,
-    stop_after_attempt,
     retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
 )
-from litellm.exceptions import RateLimitError
-from importlib.metadata import version
+
+from text2ics.system_prompt import prompt as sys_prompt
 
 load_dotenv()
 

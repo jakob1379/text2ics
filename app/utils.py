@@ -1,7 +1,8 @@
-import streamlit as st
-import icalendar as ical
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Optional
+
+import icalendar as ical
+import streamlit as st
 
 
 def ical_to_streamlit_calendar(ical_obj: ical.Calendar) -> list[dict]:
@@ -22,47 +23,60 @@ def ical_to_streamlit_calendar(ical_obj: ical.Calendar) -> list[dict]:
         if component.name == "VEVENT":
             event = {}
             # Title
-            if 'SUMMARY' in component:
-                event['title'] = str(component.get('SUMMARY'))
+            if "SUMMARY" in component:
+                event["title"] = str(component.get("SUMMARY"))
 
             # Start and End Times
-            start_dt = component.get('DTSTART')
-            end_dt = component.get('DTEND')
+            start_dt = component.get("DTSTART")
+            end_dt = component.get("DTEND")
 
             if start_dt:
                 # Handle different types of datetime objects from icalendar
                 if isinstance(start_dt.dt, datetime):
-                    event['start'] = start_dt.dt.isoformat()
+                    event["start"] = start_dt.dt.isoformat()
                     # FullCalendar's end is exclusive. If the icalendar event is all-day
                     # and ends on a specific day, FullCalendar expects the end
                     # to be the *next* day at midnight.
-                    if end_dt and isinstance(end_dt.dt, date) and not isinstance(end_dt.dt, datetime):
-                        event['end'] = (end_dt.dt + timedelta(days=1)).isoformat()
+                    if (
+                        end_dt
+                        and isinstance(end_dt.dt, date)
+                        and not isinstance(end_dt.dt, datetime)
+                    ):
+                        event["end"] = (
+                            end_dt.dt + timedelta(days=1)
+                        ).isoformat()
                     elif end_dt:
-                        event['end'] = end_dt.dt.isoformat()
+                        event["end"] = end_dt.dt.isoformat()
                 elif isinstance(start_dt.dt, date):
-                    event['start'] = start_dt.dt.isoformat()
-                    event['allDay'] = True
+                    event["start"] = start_dt.dt.isoformat()
+                    event["allDay"] = True
                     if end_dt and isinstance(end_dt.dt, date):
                         # For all-day events, FullCalendar end is exclusive of the end day.
                         # So, if an all-day event ends on 2023-08-01, FullCalendar needs 2023-08-02.
-                        event['end'] = (end_dt.dt + timedelta(days=1)).isoformat()
+                        event["end"] = (
+                            end_dt.dt + timedelta(days=1)
+                        ).isoformat()
                     else:
                         # If no end date for all-day, FullCalendar expects start date + 1 day
-                        event['end'] = (start_dt.dt + timedelta(days=1)).isoformat()
-
+                        event["end"] = (
+                            start_dt.dt + timedelta(days=1)
+                        ).isoformat()
 
             # Optional properties
-            if 'UID' in component:
-                event['id'] = str(component.get('UID'))
-            if 'LOCATION' in component:
-                event['extendedProps'] = {'location': str(component.get('LOCATION'))}
-            if 'DESCRIPTION' in component:
-                if 'extendedProps' not in event:
-                    event['extendedProps'] = {}
-                event['extendedProps']['description'] = str(component.get('DESCRIPTION'))
-            if 'URL' in component:
-                event['url'] = str(component.get('URL'))
+            if "UID" in component:
+                event["id"] = str(component.get("UID"))
+            if "LOCATION" in component:
+                event["extendedProps"] = {
+                    "location": str(component.get("LOCATION"))
+                }
+            if "DESCRIPTION" in component:
+                if "extendedProps" not in event:
+                    event["extendedProps"] = {}
+                event["extendedProps"]["description"] = str(
+                    component.get("DESCRIPTION")
+                )
+            if "URL" in component:
+                event["url"] = str(component.get("URL"))
 
             streamlit_events.append(event)
     return streamlit_events

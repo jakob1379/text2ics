@@ -1,21 +1,20 @@
-import streamlit as st
-import os
 import hashlib
+import os
 import time
-from streamlit_calendar import calendar
 
+import streamlit as st
+from streamlit_calendar import calendar
 from style import css
 from utils import (
-    validate_api_key,
     get_file_content,
-    process_content_cached,
     ical_to_streamlit_calendar,
+    process_content_cached,
+    validate_api_key,
 )
 
 calendar_options = {
     "editable": "true",
     "navLinks": "true",
-    # "resources": calendar_resources,
     "selectable": "true",
     "initialView": "listMonth",
     "height": "auto",
@@ -24,6 +23,7 @@ calendar_options = {
         "left": "",
     },
 }
+
 
 # Custom CSS for professional styling
 def load_custom_css():
@@ -139,7 +139,11 @@ def render_config_section():
         with col2:
             model = st.selectbox(
                 "Suggested models",
-                options=["gpt-4.1-nano", "claude-3-5-haiku-latest", "gemini-2.5-flash-lite-preview-06-17"],
+                options=[
+                    "gpt-4.1-nano",
+                    "claude-3-5-haiku-latest",
+                    "gemini-2.5-flash-lite-preview-06-17",
+                ],
                 index=0,
                 help="Models are not limited to the suggestion. Choose a model compatible with promptic/litellm",
                 key="model_select",
@@ -169,7 +173,6 @@ def render_input_section():
     conversion_started = getattr(
         st.session_state.app_state, "conversion_started", False
     )
-
 
     render_step_indicator(
         2,
@@ -225,7 +228,7 @@ def render_input_section():
                 if text_area_content
                 else "💡 Enter text or upload file"
             )
-            
+
         manual_text = st.text_area(
             "Event Text",
             value=text_area_content,
@@ -334,6 +337,7 @@ def render_conversion_section(
         disabled=not ready_to_convert,
         use_container_width=True,
         key="convert_button",
+        type="primary" if not st.session_state.app_state.conversion_started else "secondary"
     ):
         # Mark conversion as started - this will cause section 2 to collapse
         st.session_state.app_state.conversion_started = True
@@ -379,25 +383,18 @@ def render_conversion_section(
             progress_bar.progress(100)
             status_text.text("✅ Conversion complete!")
 
-            # Clear progress indicators
-            progress_bar.empty()
-            status_text.empty()
-
         except Exception as e:
-            progress_bar.empty()
-            status_text.empty()
             st.error(f"❌ Conversion failed: {str(e)}")
             st.info(
                 "💡 Try checking your API key or simplifying the input text"
             )
             st.markdown("</div>", unsafe_allow_html=True)
             return
-        
+
     if ics_content := st.session_state.get("ics_content"):
         # Display results with calendar preview
         st.subheader("📋 Generated Calendar")
-        with st.expander("📅 Calendar Preview", expanded=True):
-        
+        with st.expander("📅 Preview of generated calendar", expanded=True):
             # Download button
             st.download_button(
                 label="💾 Download Calendar File",
@@ -406,15 +403,15 @@ def render_conversion_section(
                 file_name=f"calendar_{int(time.time())}.ics",
                 mime="text/calendar",
                 use_container_width=True,
-                type="secondary",
+                type="primary",
             )
-        
+
             # Calendar preview instead of raw ICS content
             json_events = ical_to_streamlit_calendar(ics_content)
             calendar(
                 events=json_events,
                 options=calendar_options,
-                key='calendarview',
+                key="calendarview",
             )
 
         # Success message
