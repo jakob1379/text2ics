@@ -6,6 +6,85 @@ import time
 from dataclasses import dataclass
 from style import css
 from importlib.metadata import version
+import icalendar as ical
+from datetime import datetime, date, timedelta
+from streamlit_calendar import calendar
+
+calendar_options = {
+    "editable": "true",
+    "navLinks": "true",
+    # "resources": calendar_resources,
+    "selectable": "true",
+    "initialView": "listMonth",
+    "height": "auto",
+    "headerToolbar": {
+        "right": "",
+        "left": "",
+    },
+}
+
+def ical_to_streamlit_calendar(ical_obj: ical.Calendar) -> list[dict]:
+    """
+    Converts an icalendar.cal.Calendar object into a list of dictionaries
+    compatible with streamlit-calendar.
+
+    Args:
+        ical_obj (Calendar): An icalendar.cal.Calendar object.
+
+    Returns:
+        list[dict]: A list of dictionaries, each representing an event
+                    in the streamlit-calendar format.
+    """
+    streamlit_events = []
+
+    for component in ical_obj.walk():
+        if component.name == "VEVENT":
+            event = {}
+            # Title
+            if 'SUMMARY' in component:
+                event['title'] = str(component.get('SUMMARY'))
+
+            # Start and End Times
+            start_dt = component.get('DTSTART')
+            end_dt = component.get('DTEND')
+
+            if start_dt:
+                # Handle different types of datetime objects from icalendar
+                if isinstance(start_dt.dt, datetime):
+                    event['start'] = start_dt.dt.isoformat()
+                    # FullCalendar's end is exclusive. If the icalendar event is all-day
+                    # and ends on a specific day, FullCalendar expects the end
+                    # to be the *next* day at midnight.
+                    if end_dt and isinstance(end_dt.dt, date) and not isinstance(end_dt.dt, datetime):
+                        event['end'] = (end_dt.dt + timedelta(days=1)).isoformat()
+                    elif end_dt:
+                        event['end'] = end_dt.dt.isoformat()
+                elif isinstance(start_dt.dt, date):
+                    event['start'] = start_dt.dt.isoformat()
+                    event['allDay'] = True
+                    if end_dt and isinstance(end_dt.dt, date):
+                        # For all-day events, FullCalendar end is exclusive of the end day.
+                        # So, if an all-day event ends on 2023-08-01, FullCalendar needs 2023-08-02.
+                        event['end'] = (end_dt.dt + timedelta(days=1)).isoformat()
+                    else:
+                        # If no end date for all-day, FullCalendar expects start date + 1 day
+                        event['end'] = (start_dt.dt + timedelta(days=1)).isoformat()
+
+
+            # Optional properties
+            if 'UID' in component:
+                event['id'] = str(component.get('UID'))
+            if 'LOCATION' in component:
+                event['extendedProps'] = {'location': str(component.get('LOCATION'))}
+            if 'DESCRIPTION' in component:
+                if 'extendedProps' not in event:
+                    event['extendedProps'] = {}
+                event['extendedProps']['description'] = str(component.get('DESCRIPTION'))
+            if 'URL' in component:
+                event['url'] = str(component.get('URL'))
+
+            streamlit_events.append(event)
+    return streamlit_events
 
 # Custom CSS for professional styling
 def load_custom_css():
@@ -401,7 +480,7 @@ def render_conversion_section(
                 language if language else None,
                 process_content_func,
             )
-
+            st.session_state["ics_content"] = ics_content
             processing_time = time.time() - start_time
 
             # Update debug info
@@ -433,36 +512,36 @@ def render_conversion_section(
             )
             st.markdown("</div>", unsafe_allow_html=True)
             return
-
-        # Display results
-        st.subheader("📋 Generated ICS Calendar")
-
-        # Show calendar preview
-        with st.expander("View Calendar Content", expanded=True):
-            st.code(ics_content.to_ical().decode("utf-8"), language="text")
-            
-
-        # Download button
-        st.download_button(
-            label="💾 Download Calendar File",
-            data=ics_content.to_ical(),
-            help="Open the downloaded file to quickly add it to you calender",
-            file_name=f"calendar_{int(time.time())}.ics",
-            mime="text/calendar",
-            use_container_width=True,
-        )
+        
+    if ics_content := st.session_state.get("ics_content"):
+        # Display results with calendar preview
+        st.subheader("📋 Generated Calendar")
+        with st.expander("📅 Calendar Preview", expanded=True):
+        
+            # Download button
+            st.download_button(
+                label="💾 Download Calendar File",
+                data=ics_content.to_ical(),
+                help="Open the downloaded file to quickly add it to your calendar",
+                file_name=f"calendar_{int(time.time())}.ics",
+                mime="text/calendar",
+                use_container_width=True,
+                type="secondary",
+            )
+        
+            # Calendar preview instead of raw ICS content
+            json_events = ical_to_streamlit_calendar(ics_content)
+            calendar(
+                events=json_events,
+                options=calendar_options,
+                key='calendarview',
+            )
 
         # Success message
         st.success("🎉 Calendar generated successfully!")
-
-        # Statistics
-        event_count = ics_content.count("BEGIN:VEVENT")
-        if event_count > 0:
-            st.info(f"📊 Generated {event_count} calendar event(s)")
-
     st.markdown("</div>", unsafe_allow_html=True)
 
-
+    
 def main():
     """Main application function"""
     # Page configuration
@@ -494,7 +573,7 @@ def main():
     # Main content area with guided steps
     api_key, model, language = render_config_section()
     text_content, uploaded_file = render_input_section()
-
+    
     # Show next steps only if previous steps are completed
     if (
         st.session_state.app_state.config_completed

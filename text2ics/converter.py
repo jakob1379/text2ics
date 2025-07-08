@@ -4,6 +4,7 @@ from promptic import Promptic
 from dotenv import load_dotenv
 from text2ics.system_prompt import prompt as sys_prompt
 import icalendar
+from icalendar import Calendar
 from tenacity import (
     retry,
     wait_exponential,
@@ -47,7 +48,7 @@ def call_llm_with_retry(
 
 def process_content(
     content: str, api_key: str, model: str, language: str = None
-) -> icalendar.cal.Calendar:
+) -> Calendar:
     """
     Process the content using the LLM and ensure the generated ICS calendar is valid.
     Retries until a valid calendar is produced.
