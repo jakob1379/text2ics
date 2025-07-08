@@ -1,6 +1,8 @@
 import hashlib
 import os
 import time
+import base64
+from pathlib import Path
 
 import streamlit as st
 from streamlit_calendar import calendar
@@ -24,6 +26,10 @@ calendar_options = {
     },
 }
 
+def get_image_base64(image_path):
+    """Convert image to base64 string"""
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 
 # Custom CSS for professional styling
 def load_custom_css():
@@ -98,7 +104,7 @@ def render_config_section():
     conversion_started = getattr(
         st.session_state.app_state, "conversion_started", False
     )
-
+    
     render_step_indicator(
         1,
         "Configuration",
@@ -112,7 +118,69 @@ def render_config_section():
         "🔧 Setup API Configuration", expanded=not config_completed
     ):
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
+        # Custom CSS for button styling
+        st.markdown("""
+        <style>
+        .logo-button {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        }
+        .logo-button img {
+        width: 20px !important;
+        height: 20px !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("**Quick access to API key management:**")
+        refs = st.columns(3)
+        links = {
+            "OpenAI": {
+                "url": "https://platform.openai.com/settings/organization/api-keys",
+                "logo": "app/assets/OpenAI_Logo.svg"
+            },
+            "Claude": {
+                "url": "https://claude.ai/settings/profile", 
+                "logo": "app/assets/Claude_AI_logo.svg"
+            },
+            "Gemini": {
+                "url": "https://aistudio.google.com/app/apikey",
+                "logo": "app/assets/Google_Gemini_logo.svg"
+            },
+        }
 
+        
+        for col, (name, info) in zip(refs[:3], links.items()):
+            with col:
+                # Convert SVG to base64
+                logo_b64 = get_image_base64(info["logo"])
+                
+                # Create button with logo
+                st.markdown(f"""
+                <a href="{info['url']}" target="_blank" style="text-decoration: none;">
+                    <div style="
+                        border: 1px solid #464853;
+                        border-radius: 0.5rem;
+                        padding: 0.5rem 1rem;
+                        text-align: center;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        width: 100%;
+                        box-sizing: border-box;
+                        transition: background-color 0.3s;
+                    " onmouseover="this.style.backgroundColor='#464853'" 
+                       onmouseout="this.style.backgroundColor='#262730'">
+                        <img src="data:image/svg+xml;base64,{logo_b64}" width="auto" height="20">
+                    </div>
+                </a>
+                <br>
+                """, unsafe_allow_html=True)
+        st.markdown("---")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -258,16 +326,7 @@ def render_input_section():
 def render_cache_controls():
     """Add cache management controls to sidebar"""
     with st.sidebar:
-        st.markdown("### 🔧 Debug Panel")
-
-        # Cache controls
-        st.markdown("**Cache Management**")
-        if st.button("🗑️ Clear Cache", help="Clear all cached API responses"):
-            process_content_cached.clear()
-            st.session_state.app_state.last_cache_status = ""
-            st.session_state.app_state.last_processing_time = 0.0
-            st.success("✅ Cache cleared!")
-            st.rerun()
+        st.markdown("### Debug Panel")
 
         # Show last operation info
         if st.session_state.app_state.last_cache_status:
@@ -290,7 +349,7 @@ def render_cache_controls():
         st.info("Cache TTL: 1 hour")
 
         # Show current session state for debugging
-        with st.expander("🔍 Session Debug", expanded=False):
+        with st.expander("Session Debug", expanded=False):
             st.write("**App State:**")
             st.json(
                 {
