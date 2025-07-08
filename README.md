@@ -3,7 +3,7 @@
 A Python tool to convert unstructured text into an ICS calendar file using an LLM.
 It provides both a command-line interface (CLI) and a Streamlit web application.
 
-## 💾 Installation
+## Installation
 Ensure you have Python installed, then clone the repository and install the dependencies.
 
 ```bash
@@ -16,7 +16,7 @@ uvx text2ics
 
 You will also need an API key for a compatible LLM service (like OpenAI).
 
-## 🚀 Usage
+## Usage
 
 ### Command-Line Interface (CLI)
 
@@ -39,7 +39,7 @@ streamlit run app/app.py
 
 Open your browser to the URL provided by Streamlit to use the application.
 
-## 🧱 Development
+## Development
 This project uses `uv` for dependency management and `poethepoet` for running tasks.
 
 Install all dependencies, including for development:
@@ -49,14 +49,14 @@ uv sync --all-extras
 
 Run common development tasks:
 ```bash
-uv run poe fmt   # Format code
-uv run poe lint  # Lint and fix
-uv run poe check # Type-check
-uv run poe test  # Run tests
-uv run poe all   # Run all checks
+Configured tasks:
+poe fmt                   Formats the code using Ruff.
+poe lint                  Checks the code for linting issues and fixes them using Ruff.
+poe check                 Performs type checking using Pyright.
+poe test                  Runs the test suite using Pytest.
+poe all                   Runs all tasks: fmt, lint, check, and test.
+poe ci:fmt                Checks if the code is properly formatted using Ruff.
+poe ci:lint               Checks the code for linting issues without fixing them.
+poe app                   Runs the Streamlit app with live reload enabled.
 ```
 
-## 🦺 CI/CD
-The repository is set up with GitHub Actions to automate checks on pull requests and to handle releases.
-- **[pr.yml](.github/workflows/pr.yml):** Validates pull requests.
-- **[release.yml](.github/workflows/release.yml):** Manages releases to PyPI.
