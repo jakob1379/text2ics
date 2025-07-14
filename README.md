@@ -3,6 +3,8 @@
 A Python tool to convert unstructured text into an ICS calendar file using an LLM.
 It provides both a command-line interface (CLI) and a Streamlit web application.
 
+![Preview](https://github.com/jakob1379/text2ics/blob/main/preview.gif)
+
 ## Installation
 Ensure you have Python installed, then clone the repository and install the dependencies.
 

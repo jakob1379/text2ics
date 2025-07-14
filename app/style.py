@@ -156,6 +156,7 @@ css = """
             box-sizing: border-box;
             transition: all 0.15s ease;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            brackground: white;
         }
 
         .logo-button:hover {
