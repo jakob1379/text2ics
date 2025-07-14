@@ -3,7 +3,9 @@ import os
 import time
 import base64
 from pathlib import Path
+import io
 
+import qrcode
 import streamlit as st
 from streamlit_calendar import calendar
 from style import css
@@ -426,7 +428,16 @@ def render_conversion_section(
         # Display results with calendar preview
         st.subheader("📋 Generated Calendar")
         with st.expander("📅 Preview of generated calendar", expanded=True):
-            # Download button
+            json_events = ical_to_streamlit_calendar(ics_content)
+            calendar(
+                events=json_events,
+                options=calendar_options,
+                key="calendarview",
+            )
+            st.subheader(
+                "Download file or scan QR to get the event"
+                f"{'s' if len(ics_content.events) > 1 else ''}")
+
             st.download_button(
                 label="💾 Download Calendar File",
                 data=ics_content.to_ical(),
@@ -436,15 +447,10 @@ def render_conversion_section(
                 use_container_width=True,
                 type="primary",
             )
-
-            # Calendar preview instead of raw ICS content
-            json_events = ical_to_streamlit_calendar(ics_content)
-            calendar(
-                events=json_events,
-                options=calendar_options,
-                key="calendarview",
-            )
-
+            with io.BytesIO() as image_stream:
+                qr_image = qrcode.make(ics_content.to_ical()).save(image_stream, format='PNG')
+                st.image(image_stream)
+                
         # Success message
         st.success("🎉 Calendar generated successfully!")
     st.markdown("</div>", unsafe_allow_html=True)
