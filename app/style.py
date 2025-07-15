@@ -1,3 +1,19 @@
+bmc_slug = "FYmB2qPIYv"
+
+# Set a desired height, let the browser calculate width based on aspect ratio
+# This will prevent distortion and likely work better.
+
+bmac_html = f"""
+<p style="text-align: center;">
+    <a href="https://www.buymeacoffee.com/{bmc_slug}" target="_blank" rel="noopener noreferrer">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&slug={bmc_slug}&button_colour=FF5F5F&font_colour=FFFFFF&font_family=Lato&coffee_colour=FFDD00&for_wp=true&point_colour=40A4ED"
+             alt="Buy Me A Coffee"
+             style="height: 0 !important; width: auto !important; display: block; margin: 0 auto; border: 0px solid #000000; "
+        >
+    </a>
+</p>
+"""
+
 css = """
     <style>
         /* Import Google Fonts */

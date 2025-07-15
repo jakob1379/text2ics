@@ -1475,7 +1475,6 @@ dependencies = [
 
 [package.optional-dependencies]
 streamlit = [
-    { name = "qrcode" },
     { name = "streamlit" },
     { name = "streamlit-calendar" },
 ]
@@ -1497,7 +1496,6 @@ requires-dist = [
     { name = "litellm", specifier = ">=1.74.0" },
     { name = "promptic", specifier = ">=5.5.1" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
-    { name = "qrcode", marker = "extra == 'streamlit'", specifier = ">=8.2" },
     { name = "qrcode", extras = ["streamlit"], specifier = ">=8.2" },
     { name = "streamlit", marker = "extra == 'streamlit'", specifier = ">=1.46.1" },
     { name = "streamlit", extras = ["streamlit"], specifier = ">=1.46.1" },

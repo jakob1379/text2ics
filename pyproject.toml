@@ -46,7 +46,6 @@ streamlit = [
     "streamlit>=1.46.1",
     "streamlit-calendar>=1.3.1",
     "text2ics",
-    
 ]
 
 [dependency-groups]

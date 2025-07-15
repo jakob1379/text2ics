@@ -8,7 +8,7 @@ import io
 import qrcode
 import streamlit as st
 from streamlit_calendar import calendar
-from style import css
+from style import css, bmac_html
 from utils import (
     get_file_content,
     ical_to_streamlit_calendar,
@@ -37,7 +37,9 @@ def get_image_base64(image_path):
 def load_custom_css():
     st.markdown(css, unsafe_allow_html=True)
 
-
+def load_bmac_button():
+    st.markdown(bmac_html, unsafe_allow_html=True)
+    
 def render_header():
     """Render professional header"""
     st.markdown(
@@ -158,7 +160,7 @@ def render_config_section():
 
         with col1:
             api_key = st.text_input(
-                "LLM Service API Key",
+                "API Key",
                 type="password",
                 help="Enter your API key for the LLM service",
                 value=os.environ.get("TXT2ICS_API_KEY", ""),
@@ -297,43 +299,6 @@ def render_input_section():
     return manual_text, uploaded_file
 
 
-def render_cache_controls():
-    """Add cache management controls to sidebar"""
-    with st.sidebar:
-        st.markdown("### Debug Panel")
-
-        # Show last operation info
-        if st.session_state.app_state.last_cache_status:
-            st.markdown("**Last Operation**")
-            st.markdown(
-                f'<div class="status-indicator status-info">'
-                f"{st.session_state.app_state.last_cache_status}"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
-
-            if st.session_state.app_state.last_processing_time > 0:
-                st.metric(
-                    "Processing Time",
-                    f"{st.session_state.app_state.last_processing_time:.2f}s",
-                )
-
-        # Show cache stats
-        st.markdown("**Cache Info**")
-        st.info("Cache TTL: 1 hour")
-
-        # Show current session state for debugging
-        with st.expander("Session Debug", expanded=False):
-            st.write("**App State:**")
-            st.json(
-                {
-                    "config_completed": st.session_state.app_state.config_completed,
-                    "input_completed": st.session_state.app_state.input_completed,
-                    "conversion_started": st.session_state.app_state.conversion_started,
-                }
-            )
-
-
 def render_conversion_section(
     text_content: str,
     api_key: str,
@@ -454,3 +419,4 @@ def render_conversion_section(
         # Success message
         st.success("🎉 Calendar generated successfully!")
     st.markdown("</div>", unsafe_allow_html=True)
+

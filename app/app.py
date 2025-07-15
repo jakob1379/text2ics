@@ -3,8 +3,8 @@ from importlib.metadata import version
 import streamlit as st
 from state import init_session_state
 from ui import (
+    load_bmac_button,
     load_custom_css,
-    render_cache_controls,
     render_config_section,
     render_conversion_section,
     render_header,
@@ -18,8 +18,7 @@ def main():
     st.set_page_config(
         page_title="Text to ICS Converter",
         page_icon="📅",
-        layout=None,
-        initial_sidebar_state="collapsed",
+        layout="centered",
         menu_items={
             "Report a Bug": "https://github.com/jakob1379/text2ics/issues",
             "About": "https://github.com/jakob1379/text2ics",
@@ -38,12 +37,9 @@ def main():
         st.info("💡 To install, run: `pip install -e .` from the project root.")
         st.stop()
 
-    # Add debug panel to sidebar
-    render_cache_controls()
-
     # Render UI
     render_header()
-
+    
     # Main content area with guided steps
     api_key, model, language = render_config_section()
     text_content, uploaded_file = render_input_section()
@@ -67,10 +63,11 @@ def main():
     st.markdown(
         "<div style='text-align: center; color: #64748b; font-size: 0.9rem;'>"
         f"Built with ❤️ using Streamlit • AI-powered calendar conversion • text2ics v{version('text2ics')}"
-        "</div>",
+        "</div><br>",
         unsafe_allow_html=True,
     )
-
+    
+    load_bmac_button()
 
 if __name__ == "__main__":
     main()
