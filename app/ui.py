@@ -1,14 +1,13 @@
+import base64
 import hashlib
+import io
 import os
 import time
-import base64
-from pathlib import Path
-import io
 
 import qrcode
 import streamlit as st
 from streamlit_calendar import calendar
-from style import css, bmac_html
+from style import bmac_html, css
 from utils import (
     get_file_content,
     ical_to_streamlit_calendar,
@@ -28,18 +27,22 @@ calendar_options = {
     },
 }
 
+
 def get_image_base64(image_path):
     """Convert image to base64 string"""
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
+
 # Custom CSS for professional styling
 def load_custom_css():
     st.markdown(css, unsafe_allow_html=True)
 
+
 def load_bmac_button():
     st.markdown(bmac_html, unsafe_allow_html=True)
-    
+
+
 def render_header():
     """Render professional header"""
     st.markdown(
@@ -108,7 +111,7 @@ def render_config_section():
     conversion_started = getattr(
         st.session_state.app_state, "conversion_started", False
     )
-    
+
     render_step_indicator(
         1,
         "Configuration",
@@ -122,39 +125,41 @@ def render_config_section():
         "🔧 Setup API Configuration", expanded=not config_completed
     ):
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
-        
+
         st.markdown("**Quick access to some  API key management pages:**")
         links = {
             "OpenAI": {
                 "url": "https://platform.openai.com/settings/organization/api-keys",
-                "logo": "app/assets/OpenAI_Logo.svg"
+                "logo": "app/assets/OpenAI_Logo.svg",
             },
             "Claude": {
-                "url": "https://claude.ai/settings/profile", 
-                "logo": "app/assets/Claude_AI_logo.svg"
+                "url": "https://claude.ai/settings/profile",
+                "logo": "app/assets/Claude_AI_logo.svg",
             },
             "Gemini": {
                 "url": "https://aistudio.google.com/app/apikey",
-                "logo": "app/assets/Google_Gemini_logo.svg"
+                "logo": "app/assets/Google_Gemini_logo.svg",
             },
         }
         refs = st.columns(len(links))
 
-        
         for col, (name, info) in zip(refs[:4], links.items()):
             with col:
                 # Convert SVG to base64
                 logo_b64 = get_image_base64(info["logo"])
-                
+
                 # Create button with logo
-                st.markdown(f"""
-                <a href="{info['url']}" target="_blank" style="text-decoration: none;">
+                st.markdown(
+                    f"""
+                <a href="{info["url"]}" target="_blank" style="text-decoration: none;">
                     <div class="logo-button">
                         <img src="data:image/svg+xml;base64,{logo_b64}" width="auto" height="20">
                     </div>
                 </a>
                 <br>
-                """, unsafe_allow_html=True)
+                """,
+                    unsafe_allow_html=True,
+                )
         st.markdown("---")
         col1, col2 = st.columns(2)
 
@@ -335,7 +340,9 @@ def render_conversion_section(
         disabled=not ready_to_convert,
         use_container_width=True,
         key="convert_button",
-        type="primary" if not st.session_state.app_state.conversion_started else "secondary"
+        type="primary"
+        if not st.session_state.app_state.conversion_started
+        else "secondary",
     ):
         # Mark conversion as started - this will cause section 2 to collapse
         st.session_state.app_state.conversion_started = True
@@ -401,7 +408,8 @@ def render_conversion_section(
             )
             st.subheader(
                 "Download file or scan QR to get the event"
-                f"{'s' if len(ics_content.events) > 1 else ''}")
+                f"{'s' if len(ics_content.events) > 1 else ''}"
+            )
 
             st.download_button(
                 label="💾 Download Calendar File",
@@ -413,10 +421,11 @@ def render_conversion_section(
                 type="primary",
             )
             with io.BytesIO() as image_stream:
-                qr_image = qrcode.make(ics_content.to_ical()).save(image_stream, format='PNG')
+                qrcode.make(ics_content.to_ical()).save(
+                    image_stream, format="PNG"
+                )
                 st.image(image_stream)
-                
+
         # Success message
         st.success("🎉 Calendar generated successfully!")
     st.markdown("</div>", unsafe_allow_html=True)
-

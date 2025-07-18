@@ -22,7 +22,7 @@ def main():
         menu_items={
             "Report a Bug": "https://github.com/jakob1379/text2ics/issues",
             "About": "https://github.com/jakob1379/text2ics",
-        }
+        },
     )
 
     # Initialize app
@@ -39,7 +39,7 @@ def main():
 
     # Render UI
     render_header()
-    
+
     # Main content area with guided steps
     api_key, model, language = render_config_section()
     text_content, uploaded_file = render_input_section()
@@ -66,8 +66,9 @@ def main():
         "</div><br>",
         unsafe_allow_html=True,
     )
-    
+
     load_bmac_button()
+
 
 if __name__ == "__main__":
     main()
