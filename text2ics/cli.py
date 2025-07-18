@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import typer
-from rich import print
+from rich import print  # noqa A004
 from typing_extensions import Annotated
 
 app = typer.Typer()
@@ -9,7 +9,7 @@ app = typer.Typer()
 
 @app.command()
 def main(
-    input: Annotated[
+    text_file: Annotated[
         Path,
         typer.Argument(
             exists=True,
@@ -24,20 +24,15 @@ def main(
         str,
         typer.Option(
             ...,
-            envvar=[
-                f"{vendor}_API_KEY"
-                for vendor in ["OPENAI", "CLAUDE", "GEMINI", "TEXT2ICS"]
-            ],
+            envvar=[f"{vendor}_API_KEY" for vendor in ["OPENAI", "CLAUDE", "GEMINI", "TEXT2ICS"]],
             help="API key for the LLM service.",
         ),
     ],
-    model: Annotated[
-        str, typer.Option(help="What model to use.")
-    ] = "gpt-4.1-nano",
+    model: Annotated[str, typer.Option(help="What model to use.")] = "gpt-4.1-nano",
     language: Annotated[
         str,
         typer.Option(
-            help="Specify the output language for the ICS file. is not set language is guessed from content"
+            help="Specify the output language for the ICS file. Defaults to autodetection"
         ),
     ] = None,
 ):
@@ -46,7 +41,7 @@ def main(
     """
     from .converter import process_content
 
-    with open(input, "r", encoding="utf-8") as f:
+    with open(text_file, "r", encoding="utf-8") as f:
         text_from_file = f.read()
 
     ics_calendar = process_content(

@@ -1,4 +1,3 @@
-from importlib.metadata import version
 
 import streamlit as st
 from state import init_session_state
@@ -45,14 +44,9 @@ def main():
     text_content, uploaded_file = render_input_section()
 
     # Show next steps only if previous steps are completed
-    if (
-        st.session_state.app_state.config_completed
-        and st.session_state.app_state.input_completed
-    ):
+    if st.session_state.app_state.config_completed and st.session_state.app_state.input_completed:
         if text_content:
-            render_conversion_section(
-                text_content, api_key, model, language, process_content
-            )
+            render_conversion_section(text_content, api_key, model, language, process_content)
     elif not st.session_state.app_state.config_completed:
         st.info("👆 Please complete Step 1 to continue")
     elif not st.session_state.app_state.input_completed:
@@ -61,9 +55,13 @@ def main():
     # Footer
     st.markdown("---")
     st.markdown(
-        "<div style='text-align: center; color: #64748b; font-size: 0.9rem;'>"
-        f"Built with ❤️ using Streamlit • AI-powered calendar conversion • text2ics v{version('text2ics')}"
-        "</div><br>",
+        (
+            "<div style='text-align: center; color: #64748b; font-size: 0.9rem;'>"
+            "Built with ❤️ using Streamlit •"
+            "AI-powered calendar conversion •"
+            "text2ics v{version('text2ics')}"
+            "</div><br>"
+        ),
         unsafe_allow_html=True,
     )
 

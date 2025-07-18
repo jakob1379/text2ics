@@ -42,9 +42,7 @@ def ical_to_streamlit_calendar(ical_obj: ical.Calendar) -> list[dict]:
                         and isinstance(end_dt.dt, date)
                         and not isinstance(end_dt.dt, datetime)
                     ):
-                        event["end"] = (
-                            end_dt.dt + timedelta(days=1)
-                        ).isoformat()
+                        event["end"] = (end_dt.dt + timedelta(days=1)).isoformat()
                     elif end_dt:
                         event["end"] = end_dt.dt.isoformat()
                 elif isinstance(start_dt.dt, date):
@@ -53,28 +51,20 @@ def ical_to_streamlit_calendar(ical_obj: ical.Calendar) -> list[dict]:
                     if end_dt and isinstance(end_dt.dt, date):
                         # For all-day events, FullCalendar end is exclusive of the end day.
                         # So, if an all-day event ends on 2023-08-01, FullCalendar needs 2023-08-02.
-                        event["end"] = (
-                            end_dt.dt + timedelta(days=1)
-                        ).isoformat()
+                        event["end"] = (end_dt.dt + timedelta(days=1)).isoformat()
                     else:
                         # If no end date for all-day, FullCalendar expects start date + 1 day
-                        event["end"] = (
-                            start_dt.dt + timedelta(days=1)
-                        ).isoformat()
+                        event["end"] = (start_dt.dt + timedelta(days=1)).isoformat()
 
             # Optional properties
             if "UID" in component:
                 event["id"] = str(component.get("UID"))
             if "LOCATION" in component:
-                event["extendedProps"] = {
-                    "location": str(component.get("LOCATION"))
-                }
+                event["extendedProps"] = {"location": str(component.get("LOCATION"))}
             if "DESCRIPTION" in component:
                 if "extendedProps" not in event:
                     event["extendedProps"] = {}
-                event["extendedProps"]["description"] = str(
-                    component.get("DESCRIPTION")
-                )
+                event["extendedProps"]["description"] = str(component.get("DESCRIPTION"))
             if "URL" in component:
                 event["url"] = str(component.get("URL"))
 
@@ -103,7 +93,5 @@ def process_content_cached(
     _process_content_func,
 ):
     """Cache expensive API calls"""
-    result = _process_content_func(
-        content=content, api_key=api_key, model=model, language=language
-    )
+    result = _process_content_func(content=content, api_key=api_key, model=model, language=language)
     return result

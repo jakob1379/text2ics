@@ -59,6 +59,9 @@ dev = [
     "pytest-datadir>=1.7.2",
     "ruff>=0.12.2",
 ]
+jga = [
+    "python-lsp-server[all]>=1.13.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -93,7 +96,7 @@ text2ics = { workspace = true }
 
 [tool.ruff]
 target-version = "py313"
-line-length = 80  # use whatever number makes you happy
+line-length = 100
 
 [tool.ruff.lint]
 # you can see the looong list of rules here:
@@ -115,6 +118,10 @@ select = [
 [tool.ruff.lint.isort]
 # so it knows to group first-party stuff last
 known-first-party = ["text2ics"]
+
+[tool.ruff.lint.per-file-ignores]
+"text2ics/system_prompt.py" = ["E501"]
+"app/style.py" = ["E501"]
 
 [tool.pyright]
 venvPath = "."          # uv installs the venv in the current dir

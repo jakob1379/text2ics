@@ -68,11 +68,7 @@ def get_step_status(
     elif step_num == 2:
         if not config_completed:
             return "step-pending"
-        return (
-            "step-completed"
-            if input_completed and conversion_started
-            else "step-active"
-        )
+        return "step-completed" if input_completed and conversion_started else "step-active"
     else:  # step 3
         if not config_completed or not input_completed:
             return "step-pending"
@@ -87,9 +83,7 @@ def render_step_indicator(
     conversion_started: bool,
 ):
     """Render step indicator"""
-    status = get_step_status(
-        step_num, config_completed, input_completed, conversion_started
-    )
+    status = get_step_status(step_num, config_completed, input_completed, conversion_started)
 
     if status == "step-completed":
         icon = "✅"
@@ -108,9 +102,7 @@ def render_config_section():
     """Render configuration section"""
     config_completed = st.session_state.app_state.config_completed
     input_completed = st.session_state.app_state.input_completed
-    conversion_started = getattr(
-        st.session_state.app_state, "conversion_started", False
-    )
+    conversion_started = getattr(st.session_state.app_state, "conversion_started", False)
 
     render_step_indicator(
         1,
@@ -121,9 +113,7 @@ def render_config_section():
     )
 
     # Expander is open if the configuration is not yet completed.
-    with st.expander(
-        "🔧 Setup API Configuration", expanded=not config_completed
-    ):
+    with st.expander("🔧 Setup API Configuration", expanded=not config_completed):
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
 
         st.markdown("**Quick access to some  API key management pages:**")
@@ -219,9 +209,7 @@ def render_input_section():
     """Render input section with file upload and text area"""
     config_completed = st.session_state.app_state.config_completed
     input_completed = st.session_state.app_state.input_completed
-    conversion_started = getattr(
-        st.session_state.app_state, "conversion_started", False
-    )
+    conversion_started = getattr(st.session_state.app_state, "conversion_started", False)
 
     render_step_indicator(
         2,
@@ -272,11 +260,7 @@ def render_input_section():
                 input_source = "📁 File content available"
         else:
             text_area_content = st.session_state.get("manual_text", "")
-            input_source = (
-                "✍️ Manual input"
-                if text_area_content
-                else "💡 Enter text or upload file"
-            )
+            input_source = "✍️ Manual input" if text_area_content else "💡 Enter text or upload file"
 
         manual_text = st.text_area(
             "Event Text",
@@ -310,14 +294,14 @@ def render_conversion_section(
     model: str,
     language: str,
     process_content_func,
-):
+) -> None:
     """Render conversion section"""
     if not text_content or not api_key:
         return
 
     # Validation checks
     ready_to_convert = True
-    issues = []
+    issues: list[str] = []
 
     if not validate_api_key(api_key):
         issues.append("❌ Invalid API key")
@@ -340,9 +324,7 @@ def render_conversion_section(
         disabled=not ready_to_convert,
         use_container_width=True,
         key="convert_button",
-        type="primary"
-        if not st.session_state.app_state.conversion_started
-        else "secondary",
+        type="primary" if not st.session_state.app_state.conversion_started else "secondary",
     ):
         # Mark conversion as started - this will cause section 2 to collapse
         st.session_state.app_state.conversion_started = True
@@ -377,9 +359,7 @@ def render_conversion_section(
             if processing_time < 1.0:
                 st.session_state.app_state.last_cache_status = "⚡ Cache Hit"
             else:
-                st.session_state.app_state.last_cache_status = (
-                    "🔄 New Generation"
-                )
+                st.session_state.app_state.last_cache_status = "🔄 New Generation"
 
             progress_bar.progress(75)
             status_text.text("📅 Generating calendar...")
@@ -390,9 +370,7 @@ def render_conversion_section(
 
         except Exception as e:
             st.error(f"❌ Conversion failed: {str(e)}")
-            st.info(
-                "💡 Try checking your API key or simplifying the input text"
-            )
+            st.info("💡 Try checking your API key or simplifying the input text")
             st.markdown("</div>", unsafe_allow_html=True)
             return
 
@@ -421,9 +399,7 @@ def render_conversion_section(
                 type="primary",
             )
             with io.BytesIO() as image_stream:
-                qrcode.make(ics_content.to_ical()).save(
-                    image_stream, format="PNG"
-                )
+                qrcode.make(ics_content.to_ical()).save(image_stream, format="PNG")
                 st.image(image_stream)
 
         # Success message
