@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from icalendar import Calendar
 from litellm.exceptions import RateLimitError
 from promptic import Promptic
-from rich import print
+from rich import print  # noqa A004
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -23,9 +23,7 @@ load_dotenv()
     stop=stop_after_attempt(5),  # Retry up to 5 times
     retry=retry_if_exception_type(RateLimitError),  # Retry on rate limit errors
 )
-def call_llm_with_retry(
-    promptic: Promptic, content: str, language: str = None
-) -> str:
+def call_llm_with_retry(promptic: Promptic, content: str, language: str = None) -> str:
     """
     Call the LLM with retry logic for handling rate limits.
     """
@@ -40,16 +38,17 @@ def call_llm_with_retry(
             {"role": "system", "content": sys_prompt},
             {
                 "role": "user",
-                "content": f"Extract events from the following content and generate an ICS calendar file:\n{content}\n{output_language}",
+                "content": (
+                    "Extract events from the following content and generate an ICS"
+                    f"calendar file:\n{content}\n{output_language}"
+                ),
             },
         ]
     )
     return response.choices[0].message.content
 
 
-def process_content(
-    content: str, api_key: str, model: str, language: str = None
-) -> Calendar:
+def process_content(content: str, api_key: str, model: str, language: str = None) -> Calendar:
     """
     Process the content using the LLM and ensure the generated ICS calendar is valid.
     Retries until a valid calendar is produced.
