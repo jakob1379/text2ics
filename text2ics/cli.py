@@ -6,7 +6,6 @@ from typing_extensions import Annotated
 
 app = typer.Typer()
 
-
 @app.command()
 def main(
     text_file: Annotated[
@@ -28,7 +27,7 @@ def main(
             help="API key for the LLM service.",
         ),
     ],
-    model: Annotated[str, typer.Option(help="What model to use.")] = "gpt-4.1-nano",
+    model: Annotated[str, typer.Option(help="What model to use.")] = "gpt-5",
     language: Annotated[
         str,
         typer.Option(
@@ -49,6 +48,3 @@ def main(
     )
     print(ics_calendar.to_ical().decode("utf-8"))
 
-
-if __name__ == "__main__":
-    app()

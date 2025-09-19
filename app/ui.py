@@ -178,9 +178,15 @@ def render_config_section():
             model = st.selectbox(
                 "Suggested models",
                 options=[
-                    "gpt-4.1-nano",
-                    "claude-3-5-haiku-latest",
-                    "gemini-2.5-flash-lite-preview-06-17",
+                    # OpenAI
+                    "gpt-5",
+                    "gpt-5-mini",
+                    # Anthropic (Claude)
+                    "claude-4-opus",
+                    "claude-4-sonnet",
+                    # Google (Gemini)
+                    "gemini-2.5-pro",
+                    "gemini-2.5-flash",
                 ],
                 index=0,
                 help="See all valid models here: [LitLLM Providers](https://docs.litellm.ai/docs/providers)",

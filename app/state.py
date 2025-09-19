@@ -8,7 +8,7 @@ class AppState:
     """Application state management"""
 
     api_key: str = ""
-    model: str = "gpt-4.1-nano"
+    model: str = "gpt-5"
     language: str = ""
     config_completed: bool = False
     input_completed: bool = False
