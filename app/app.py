@@ -1,4 +1,3 @@
-
 import streamlit as st
 from state import init_session_state
 from ui import (
@@ -30,11 +29,22 @@ def main():
 
     # Check dependencies
     try:
-        from text2ics import process_content
-    except ImportError:
-        st.error("❌ Missing dependency: 'text2ics' package not found")
-        st.info("💡 To install, run: `pip install -e .` from the project root.")
-        st.stop()
+        # Prefer importing the converter directly so the local package works without installation
+        from text2ics.converter import process_content
+    except Exception:
+        # If importing fails, try adding the project root to sys.path so the local package can be imported
+        import sys
+        import os
+
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        if repo_root not in sys.path:
+            sys.path.insert(0, repo_root)
+        try:
+            from text2ics.converter import process_content
+        except Exception:
+            st.error("❌ Missing dependency: 'text2ics' package not found")
+            st.info("💡 To install, run: `pip install -e .` from the project root.")
+            st.stop()
 
     # Render UI
     render_header()
