@@ -17,7 +17,7 @@ from text2ics.system_prompt import prompt as sys_prompt
 
 if TYPE_CHECKING:
     from icalendar import Component
-    
+
 load_dotenv()
 
 
@@ -42,8 +42,11 @@ def call_llm_with_retry(promptic: Promptic, content: str, language: str|None = N
             {
                 "role": "user",
                 "content": (
-                    "Extract events from the following content and generate an ICS"
-                    f"calendar file:\n{content}\n{output_language}"
+                    f"""Extract the events from the <INPUT>...</INPUT> section and output as a raw ICS text block containing all event described in the text
+
+                    OUTPUT_LANGUAGE: {output_language}
+
+                    <INPUT>{content}</INPUT>"""
                 ),
             },
         ]

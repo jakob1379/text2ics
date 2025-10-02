@@ -1,4 +1,5 @@
 import streamlit as st
+from importlib.metadata import version
 from state import init_session_state
 from ui import (
     load_bmac_button,
@@ -69,7 +70,7 @@ def main():
             "<div style='text-align: center; color: #64748b; font-size: 0.9rem;'>"
             "Built with ❤️ using Streamlit •"
             "AI-powered calendar conversion •"
-            "text2ics v{version('text2ics')}"
+            f"text2ics v{version('text2ics')}"
             "</div><br>"
         ),
         unsafe_allow_html=True,

@@ -57,7 +57,6 @@ Homepage = "https://github.com/jakob1379/text2ics"
 Repository = "https://github.com/jakob1379/text2ics"
 "Bug Tracker" = "https://github.com/jakob1379/text2ics/issues"
 
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
