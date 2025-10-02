@@ -22,30 +22,30 @@ classifiers = [
 ]
 dependencies = [
     "icalendar>=6.3.1",
-    "litellm>=1.74.0",
-    "promptic>=5.5.1",
+    "litellm>=1.77.5",
+    "promptic>=5.5.3",
     "python-dotenv>=1.1.1",
     "tenacity>=9.1.2",
-    "typer>=0.16.0",
+    "typer>=0.19.2",
 ]
 
 [project.optional-dependencies]
 st = [
-    "authlib>=1.6.1",
+    "authlib>=1.6.4",
     "qrcode>=8.2",
-    "streamlit>=1.47.1",
+    "streamlit>=1.50.0",
     "streamlit-calendar>=1.4.0",
 ]
 
 [dependency-groups]
 dev = [
-    "ipython>=9.4.0",
-    "poethepoet>=0.36.0",
-    "pre-commit>=4.2.0",
-    "pyright>=1.1.403",
-    "pytest>=8.4.1",
+    "ipython>=9.6.0",
+    "poethepoet>=0.37.0",
+    "pre-commit>=4.3.0",
+    "pyright>=1.1.406",
+    "pytest>=8.4.2",
     "pytest-datadir>=1.8.0",
-    "ruff>=0.12.7",
+    "ruff>=0.13.2",
 ]
 
 [project.scripts]
