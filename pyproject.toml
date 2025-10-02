@@ -29,15 +29,13 @@ dependencies = [
     "typer>=0.19.2",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 st = [
     "authlib>=1.6.4",
     "qrcode>=8.2",
     "streamlit>=1.50.0",
     "streamlit-calendar>=1.4.0",
 ]
-
-[dependency-groups]
 dev = [
     "ipython>=9.6.0",
     "poethepoet>=0.37.0",
