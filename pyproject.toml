@@ -7,7 +7,7 @@ authors = [
     { name = "Jakob Stender Guldberg", email = "jakob1379@gmail.com" }
 ]
 license = { text = "MIT" }
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"  # upper bound: nooa requires <3.14
 keywords = ["ics", "calendar", "llm", "ai", "text-processing", "streamlit"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -23,14 +23,13 @@ classifiers = [
 dependencies = [
     "icalendar>=6.3.1",
     "litellm>=1.77.5",
-    "promptic>=5.5.3",
     "python-dotenv>=1.1.1",
-    "tenacity>=9.1.2",
     "typer>=0.19.2",
     "authlib>=1.6.4",
     "qrcode>=8.2",
     "streamlit>=1.50.0",
     "streamlit-calendar>=1.4.0",
+    "nooa>=0.0.8",
 ]
 
 [dependency-groups]
@@ -74,7 +73,7 @@ all = { sequence = ["fmt", "lint", "check", "test"], help = "Runs all tasks: fmt
 "ci:lint" = { cmd = "ruff check", help = "Checks the code for linting issues without fixing them." }
 
 # local dev
-app = { cmd = "uv run --group st streamlit run app/app.py --server.runOnSave true", help = "Runs the Streamlit app with live reload enabled." }
+app = { cmd = "uv run streamlit run app/app.py --server.runOnSave true", help = "Runs the Streamlit app with live reload enabled." }
 
 [tool.uv]
 package = true
@@ -104,14 +103,24 @@ select = [
 known-first-party = ["text2ics"]
 
 [tool.ruff.lint.per-file-ignores]
-"text2ics/system_prompt.py" = ["E501"]
 "app/style.py" = ["E501"]
 
 [tool.pyright]
 venvPath = "."          # uv installs the venv in the current dir
 venv = ".venv"          #       in a folder called `.venv`
-strict = ["**/*.py"]    # use 'strict' checking on all files
+# app/ is a Streamlit script tree leaning on unstubbed libraries; strict has never
+# passed there (40 errors on main). Strict applies to the library and its tests.
+#
+# app/ is NOT unchecked: everything outside this list still runs at Pyright's
+# default mode, and `poe check` covers the whole repo. A genuine type error in
+# app/ fails CI -- verified by planting one. Only the extra strict-mode rules
+# (unknown types from unstubbed libs) are relaxed there.
+typeCheckingMode = "standard"
+strict = ["text2ics/**/*.py", "tests/**/*.py"]
+extraPaths = ["app"]  # app/ uses flat imports; tests/conftest.py puts it on sys.path
 pythonVersion = "3.13"  # if library, specify the _lowest_ you support
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
+# app/ is a Streamlit script tree with flat imports; it only imports under `streamlit run`.
+testpaths = ["tests", "text2ics"]

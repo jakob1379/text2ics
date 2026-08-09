@@ -1,11 +1,13 @@
+import io
 from datetime import date, datetime, timedelta
-from typing import Optional
+from typing import Any, Optional
 
 import icalendar as ical
+import qrcode
 import streamlit as st
 
 
-def ical_to_streamlit_calendar(ical_obj: ical.Calendar) -> list[dict]:
+def ical_to_streamlit_calendar(ical_obj: ical.Calendar) -> list[dict[str, Any]]:
     """
     Converts an icalendar.cal.Calendar object into a list of dictionaries
     compatible with streamlit-calendar.
@@ -95,3 +97,18 @@ def process_content_cached(
     """Cache expensive API calls"""
     result = _process_content_func(content=content, api_key=api_key, model=model, language=language)
     return result
+
+
+def qr_png(payload: bytes) -> bytes:
+    """A QR code for `payload`, as PNG bytes.
+
+    Returning bytes rather than the BytesIO is the point. After ``save()`` the
+    stream sits at EOF, so anything reading from it gets nothing, and the buffer
+    was previously closed by its ``with`` block before Streamlit served the file.
+    Together that produced `MediaFileStorageError: No media file with id ...` and
+    a missing QR code.
+    """
+    buffer = io.BytesIO()
+    # PilImage.save is (stream, format=None, **kwargs) at runtime; the stub omits it.
+    qrcode.make(payload).save(buffer, format="PNG")  # pyright: ignore[reportCallIssue]
+    return buffer.getvalue()

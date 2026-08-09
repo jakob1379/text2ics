@@ -6,8 +6,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      # Without this, one failing leg cancels the others and reports them as
+      # failures too, which hides which version actually broke.
+      fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13']
+        # requires-python is >=3.13,<3.14 (3.13 only): >=3.13 predates this
+        # workflow, and nooa caps at <3.14. A 3.12 leg cannot resolve at all.
+        python-version: ['3.13']
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5

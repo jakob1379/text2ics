@@ -2,13 +2,15 @@ from dataclasses import dataclass
 
 import streamlit as st
 
+from text2ics.models import DEFAULT_MODEL
+
 
 @dataclass
 class AppState:
     """Application state management"""
 
     api_key: str = ""
-    model: str = "gpt-5"
+    model: str = DEFAULT_MODEL
     language: str = ""
     config_completed: bool = False
     input_completed: bool = False

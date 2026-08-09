@@ -9,9 +9,9 @@
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            uv
-            pkgs.zlib
             pkgs.stdenv.cc.cc.lib
+            pkgs.zlib
+            uv
           ];
 
           LD_LIBRARY_PATH = "${pkgs.lib.makeLibraryPath [

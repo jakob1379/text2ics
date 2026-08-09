@@ -1,10 +1,9 @@
 import base64
 import hashlib
-import io
 import os
 import time
+from typing import Any
 
-import qrcode
 import streamlit as st
 from streamlit_calendar import calendar
 from style import bmac_html, css
@@ -12,20 +11,41 @@ from utils import (
     get_file_content,
     ical_to_streamlit_calendar,
     process_content_cached,
+    qr_png,
     validate_api_key,
 )
 
-calendar_options = {
+from text2ics.models import DEFAULT_PROVIDER, KEY_URLS, PROVIDERS
+
+CALENDAR_OPTIONS: dict[str, Any] = {
     "editable": "true",
     "navLinks": "true",
     "selectable": "true",
-    "initialView": "listMonth",
+    # listMonth only renders the month it is currently on, and the toolbar was
+    # emptied, so there were no prev/next buttons: events in any other month were
+    # in the ICS but invisible in the preview. listYear plus navigation shows the
+    # whole set.
+    "initialView": "listYear",
     "height": "auto",
     "headerToolbar": {
-        "right": "",
-        "left": "",
+        "left": "prev,next today",
+        "center": "title",
+        "right": "listYear,listMonth",
     },
 }
+
+
+def calendar_options_for(events: list[dict[str, Any]]) -> dict[str, Any]:
+    """Open the preview on the first event, not on today.
+
+    Events are frequently months ahead, and a view anchored to today would start
+    on an empty page even with navigation available.
+    """
+    options = dict(CALENDAR_OPTIONS)
+    starts = sorted(e["start"] for e in events if e.get("start"))
+    if starts:
+        options["initialDate"] = starts[0][:10]  # YYYY-MM-DD
+    return options
 
 
 def get_image_base64(image_path):
@@ -44,14 +64,17 @@ def load_bmac_button():
 
 
 def render_header():
-    """Render professional header"""
+    """Render welcoming banner header"""
     st.markdown(
         """
-    <div class="main-header">
-        <h1>📅 Text to ICS Converter</h1>
-        <p>Transform your event descriptions into calendar files with AI precision</p>
-    </div>
-    """,
+        <div class="welcome-header">
+            <h1>📅 Text to ICS Converter</h1>
+            <p>Transform your event descriptions into calendar files</p>
+            <p style="margin-top: 1rem; font-size: 1rem; opacity: 0.9;">
+                Add your event below to get started
+            </p>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -68,11 +91,12 @@ def get_step_status(
     elif step_num == 2:
         if not config_completed:
             return "step-pending"
-        return "step-completed" if input_completed and conversion_started else "step-active"
+        return "step-completed" if input_completed else "step-active"
     else:  # step 3
         if not config_completed or not input_completed:
             return "step-pending"
-        return "step-active"
+        # Step 3 is active when ready to generate
+        return "step-completed" if conversion_started else "step-active"
 
 
 def render_step_indicator(
@@ -99,197 +123,164 @@ def render_step_indicator(
 
 
 def render_config_section():
-    """Render configuration section"""
-    config_completed = st.session_state.app_state.config_completed
-    input_completed = st.session_state.app_state.input_completed
-    conversion_started = getattr(st.session_state.app_state, "conversion_started", False)
+    """Render user-friendly settings section as sidebar"""
+    with st.sidebar:
+        st.subheader("⚙️ Settings")
 
-    render_step_indicator(
-        1,
-        "Configuration",
-        config_completed,
-        input_completed,
-        conversion_started,
-    )
+        # API Key section with friendly guidance
+        st.markdown("### 🔑 API Key")
+        st.markdown("To use this tool, you'll need an AI service API key.")
 
-    # Expander is open if the configuration is not yet completed.
-    with st.expander("🔧 Setup API Configuration", expanded=not config_completed):
-        st.markdown('<div class="section-container">', unsafe_allow_html=True)
+        with st.expander("❓ What's an API key? How do I get one?", expanded=False):
+            # Built from KEY_URLS so this list cannot drift from the picker.
+            services = "\n".join(
+                f"               - [{name}]({url})" for name, url in KEY_URLS.items()
+            )
+            st.markdown(f"""
+            **An API key is like a password that lets this tool use AI services.**
 
-        st.markdown("**Quick access to some  API key management pages:**")
-        links = {
-            "OpenAI": {
-                "url": "https://platform.openai.com/settings/organization/api-keys",
-                "logo": "app/assets/OpenAI_Logo.svg",
-            },
-            "Claude": {
-                "url": "https://claude.ai/settings/profile",
-                "logo": "app/assets/Claude_AI_logo.svg",
-            },
-            "Gemini": {
-                "url": "https://aistudio.google.com/app/apikey",
-                "logo": "app/assets/Google_Gemini_logo.svg",
-            },
-        }
-        refs = st.columns(len(links))
+            **Getting one is free and takes 2 minutes:**
+            1. **Choose a service** (any will work):
+{services}
+            2. **Create an account** (if you don't have one)
+            3. **Generate an API key** in the settings
+            4. **Copy and paste it here**, then pick the matching provider below
 
-        for col, (name, info) in zip(refs[:4], links.items()):
-            with col:
-                # Convert SVG to base64
-                logo_b64 = get_image_base64(info["logo"])
+            **Don't worry about costs** - extracting events is cheap, and the
+            default model costs a fraction of a cent per calendar.
+            Most services offer free credits to start.
+            """)
 
-                # Create button with logo
-                st.markdown(
-                    f"""
-                <a href="{info["url"]}" target="_blank" style="text-decoration: none;">
-                    <div class="logo-button">
-                        <img src="data:image/svg+xml;base64,{logo_b64}" width="auto" height="20">
-                    </div>
-                </a>
-                <br>
-                """,
-                    unsafe_allow_html=True,
-                )
+        api_key = st.text_input(
+            "Your API Key",
+            type="password",
+            help="Paste your API key here. It's required to generate calendars.",
+            value=os.environ.get("TXT2ICS_API_KEY", ""),
+            key="api_key_input",
+        )
+
+        if api_key:
+            if validate_api_key(api_key):
+                st.success("✅ API Key looks good!")
+            else:
+                st.warning("⚠️ Key seems too short. Make sure it's complete.")
+        else:
+            st.info("👆 Paste your API key above to get started")
+
         st.markdown("---")
-        col1, col2 = st.columns(2)
 
-        with col1:
-            api_key = st.text_input(
-                "API Key",
-                type="password",
-                help="Enter your API key for the LLM service",
-                value=os.environ.get("TXT2ICS_API_KEY", ""),
-                key="api_key_input",
+        # Advanced settings (collapsed by default)
+        with st.expander("⚙️ Advanced Settings", expanded=False):
+            # Model selection - simplified for non-technical users
+            st.markdown("**AI Model** (optional)")
+            providers = list(PROVIDERS)
+            provider = st.selectbox(
+                "Provider:",
+                options=providers,
+                index=providers.index(DEFAULT_PROVIDER),
+                help="Pick the service your API key is for.",
+                key="provider_select",
             )
+            st.caption(f"[Get a {provider} key]({KEY_URLS[provider]})")
 
-            if api_key:
-                if validate_api_key(api_key):
-                    st.markdown(
-                        '<div class="status-indicator status-success">✅ API Key Valid</div>',
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.markdown(
-                        '<div class="status-indicator status-warning">⚠️ API Key Too Short</div>',
-                        unsafe_allow_html=True,
-                    )
-
-        with col2:
+            # Only this provider's models, so the choice always matches the key.
+            choices = list(PROVIDERS[provider])
             model = st.selectbox(
-                "Suggested models",
-                options=[
-                    # OpenAI
-                    "gpt-5",
-                    "gpt-5-mini",
-                    # Anthropic (Claude)
-                    "claude-4-opus",
-                    "claude-4-sonnet",
-                    # Google (Gemini)
-                    "gemini-2.5-pro",
-                    "gemini-2.5-flash",
-                ],
-                index=0,
-                help="See all valid models here: [LitLLM Providers](https://docs.litellm.ai/docs/providers)",
-                key="model_select",
+                "Model:",
+                options=choices,
+                index=0,  # cheapest first
+                help="Extracting events is easy, so the cheapest model usually suffices.",
+                key=f"model_select_{provider}",
             )
+            model = PROVIDERS[provider][model]
 
+            # Language
             language = st.text_input(
-                "Output Language",
-                placeholder="Output Language (Optional)",
-                help="e.g., 'en', 'es', 'fr' - leave blank for auto-detection",
+                "Calendar Language (optional)",
+                placeholder="e.g., 'en' for English, 'es' for Spanish",
+                help="Leave blank to auto-detect from your text",
                 key="language_input",
             )
 
-        # Update completion status
+        # Update completion status (for backward compatibility)
         if api_key and validate_api_key(api_key):
             st.session_state.app_state.config_completed = True
         else:
             st.session_state.app_state.config_completed = False
 
-        st.markdown("</div>", unsafe_allow_html=True)
-
     return api_key, model, language
 
 
 def render_input_section():
-    """Render input section with file upload and text area"""
-    config_completed = st.session_state.app_state.config_completed
-    input_completed = st.session_state.app_state.input_completed
-    conversion_started = getattr(st.session_state.app_state, "conversion_started", False)
+    """Render simplified input section with example text"""
 
-    render_step_indicator(
-        2,
-        "Input Content",
-        config_completed,
-        input_completed,
-        conversion_started,
+    # Verified end to end: gpt-5-mini and gpt-5.4-mini both extract all 8 events
+    # from this text, framing lines included. The events that went missing from
+    # the preview were a calendar-view problem, not an extraction one.
+    example_text = """Example events (edit or replace with your own):
+
+24/9 - Team Meeting: Weekly sync at 14:00-15:00 in Conference Room A
+25/9 - Dentist Appointment: 10:00-11:00 at Dental Clinic
+26/9 - Project Deadline: Submit final report by EOD
+27/9 - Dinner with Friends: 19:00 at Italian Restaurant
+28/9 - Gym Session: 18:00-19:30
+
+Or enter your own events in any format:
+- Team meeting tomorrow at 2pm
+- Conference call on Wednesday 3-4pm
+- Birthday party Saturday 7pm"""
+
+    # File upload option
+    uploaded_file = st.file_uploader(
+        "📁 Upload a text file (optional)",
+        type=["txt"],
+        help="Upload a .txt file containing event details",
+        key="file_uploader",
     )
 
-    # Only allow expansion if config is completed
-    if not config_completed:
-        with st.expander("📝 Add Event Content", expanded=False):
-            st.info("⚠️ Please complete Step 1 (Configuration) first")
-        return "", None
+    # Determine initial text area content
+    text_area_content = ""
 
-    # Determine if this expander should be expanded - stay expanded until conversion starts
-    expand_input = config_completed and not conversion_started
+    if uploaded_file is not None:
+        file_hash = hashlib.md5(uploaded_file.read()).hexdigest()
+        uploaded_file.seek(0)  # Reset file pointer
 
-    with st.expander("📝 Add Event Content", expanded=expand_input):
-        st.markdown('<div class="section-container">', unsafe_allow_html=True)
-
-        # File upload
-        st.subheader("Option 1: Upload Text File")
-        uploaded_file = st.file_uploader(
-            "Choose a text file",
-            type=["txt"],
-            help="Upload a .txt file containing event details",
-            key="file_uploader",
-        )
-
-        # Text area
-        st.subheader("Option 2: Direct Text Input")
-
-        # Determine initial text area content
-        text_area_content = ""
-        input_source = ""
-
-        if uploaded_file is not None:
-            file_hash = hashlib.md5(uploaded_file.read()).hexdigest()
-            uploaded_file.seek(0)  # Reset file pointer
-
-            if st.session_state.file_hash != file_hash:
-                st.session_state.file_hash = file_hash
-                text_area_content = get_file_content(uploaded_file.read())
-                input_source = "📁 Content loaded from file"
-            else:
-                text_area_content = st.session_state.get("manual_text", "")
-                input_source = "📁 File content available"
+        if st.session_state.file_hash != file_hash:
+            st.session_state.file_hash = file_hash
+            text_area_content = get_file_content(uploaded_file.read())
+            st.info("📁 File loaded! You can edit the text below.")
         else:
-            text_area_content = st.session_state.get("manual_text", "")
-            input_source = "✍️ Manual input" if text_area_content else "💡 Enter text or upload file"
+            text_area_content = st.session_state.get("manual_text", example_text)
+    else:
+        text_area_content = st.session_state.get("manual_text", example_text)
 
-        manual_text = st.text_area(
-            "Event Text",
-            value=text_area_content,
-            height=250,
-            help="Type or paste your event text here",
-            key="manual_text",
-        )
+    # Main text area
+    manual_text = st.text_area(
+        "📝 Your Events",
+        value=text_area_content,
+        height=300,
+        help=(
+            "Type or paste your event details here. "
+            "The AI will automatically find dates, times, and locations."
+        ),
+        key="manual_text",
+    )
 
-        # Show input source indicator
-        if input_source:
-            st.markdown(
-                f'<div class="status-indicator status-info">{input_source}</div>',
-                unsafe_allow_html=True,
-            )
+    # Tips
+    with st.expander("💡 Tips for best results", expanded=False):
+        st.markdown("""
+        - **Be specific**: Include dates, times, and locations when possible
+        - **Natural language**: "Meeting on Tuesday at 2pm" works well
+        - **Multiple events**: List events one per line or in paragraphs
+        - **Time formats**: 14:00, 2pm, 2:00 PM all work
+        - **Date formats**: 24/9, 24-09, September 24, tomorrow, next Tuesday
+        """)
 
-        # Update completion status
-        if manual_text and len(manual_text.strip()) > 10:
-            st.session_state.app_state.input_completed = True
-        else:
-            st.session_state.app_state.input_completed = False
-
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Update completion status (for backward compatibility)
+    if manual_text and len(manual_text.strip()) > 10:
+        st.session_state.app_state.input_completed = True
+    else:
+        st.session_state.app_state.input_completed = False
 
     return manual_text, uploaded_file
 
@@ -302,27 +293,24 @@ def render_conversion_section(
     process_content_func,
 ) -> None:
     """Render conversion section"""
-    if not text_content or not api_key:
-        return
-
     # Validation checks
     ready_to_convert = True
     issues: list[str] = []
 
-    if not validate_api_key(api_key):
-        issues.append("❌ Invalid API key")
+    if not api_key:
+        issues.append("🔑 Please enter your API key to continue")
+        ready_to_convert = False
+    elif not validate_api_key(api_key):
+        issues.append("❌ API key seems incomplete. Please check and try again.")
         ready_to_convert = False
 
-    if len(text_content.strip()) < 10:
-        issues.append("❌ Text content too short")
+    if not text_content or len(text_content.strip()) < 10:
+        issues.append("📝 Please enter some event details (at least 10 characters)")
         ready_to_convert = False
 
     if issues:
         for issue in issues:
-            st.markdown(
-                f'<div class="status-indicator status-warning">{issue}</div>',
-                unsafe_allow_html=True,
-            )
+            st.warning(issue)
 
     # conversion button
     if st.button(
@@ -350,14 +338,15 @@ def render_conversion_section(
             # Track timing for cache feedback
             start_time = time.time()
 
-            ics_content = process_content_cached(
+            ics_calendar, debug_info = process_content_cached(
                 text_content,
                 api_key,
                 model,
                 language if language else None,
                 process_content_func,
             )
-            st.session_state["ics_content"] = ics_content
+            st.session_state["ics_content"] = ics_calendar
+            st.session_state["debug_info"] = debug_info
             processing_time = time.time() - start_time
 
             # Update debug info
@@ -387,9 +376,10 @@ def render_conversion_section(
             json_events = ical_to_streamlit_calendar(ics_content)
             calendar(
                 events=json_events,
-                options=calendar_options,
+                options=calendar_options_for(json_events),
                 key="calendarview",
             )
+            st.caption(f"{len(json_events)} event{'s' if len(json_events) != 1 else ''} extracted")
             st.subheader(
                 "Download file or scan QR to get the event"
                 f"{'s' if len(ics_content.events) > 1 else ''}"
@@ -404,10 +394,19 @@ def render_conversion_section(
                 use_container_width=True,
                 type="primary",
             )
-            with io.BytesIO() as image_stream:
-                qrcode.make(ics_content.to_ical()).save(image_stream, format="PNG")
-                st.image(image_stream)
+            st.image(
+                qr_png(ics_content.to_ical()),
+                caption="Scan to add these events to your phone",
+            )
 
         # Success message
         st.success("🎉 Calendar generated successfully!")
+
+        # Debug panel
+        if debug_info := st.session_state.get("debug_info"):
+            with st.expander("🤖 Debug Output", expanded=False):
+                st.subheader("Model Output")
+                st.code(debug_info.get("raw_output", ""), language="text")
+                st.subheader("Debug Info")
+                st.json(debug_info)
     st.markdown("</div>", unsafe_allow_html=True)
