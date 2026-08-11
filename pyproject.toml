@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "icalendar>=6.3.1",
-    "litellm>=1.77.5",
+    "litellm>=1.96.0",  # earlier bundled model maps lack most of text2ics/models.py
     "python-dotenv>=1.1.1",
     "typer>=0.19.2",
     "authlib>=1.6.4",

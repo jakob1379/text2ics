@@ -33,10 +33,13 @@ PROVIDERS: dict[str, dict[str, str]] = {
         "Kimi K2.6": "moonshot/kimi-k2.6",
         "Kimi Latest": "moonshot/kimi-latest",
     },
+    # glm-4.7-flash and glm-5.1 exist upstream but are absent from the model map
+    # bundled with the pinned litellm, so offering them would make the catalogue
+    # verifiable only with network access. These three ship in the bundle.
     "GLM": {
-        "GLM 4.7 Flash (free)": "zai/glm-4.7-flash",
-        "GLM 5": "zai/glm-5",
-        "GLM 5.1 (most capable)": "zai/glm-5.1",
+        "GLM 4.5 Flash (free)": "zai/glm-4.5-flash",
+        "GLM 4.7": "zai/glm-4.7",
+        "GLM 5 (most capable)": "zai/glm-5",
     },
     "Grok": {
         "Grok 4.1 Fast (cheapest)": "xai/grok-4-1-fast-non-reasoning",
@@ -66,6 +69,42 @@ KEY_URLS: dict[str, str] = {
     "GLM": "https://z.ai/manage-apikey/apikey-list",
     "Grok": "https://console.x.ai/",
 }
+
+# litellm's own provider id for each display name.
+LITELLM_IDS: dict[str, str] = {
+    "OpenAI": "openai",
+    "Anthropic": "anthropic",
+    "DeepSeek": "deepseek",
+    "Kimi": "moonshot",
+    "GLM": "zai",
+    "Grok": "xai",
+}
+
+
+def env_var_for_model(model: str) -> str | None:
+    """The variable holding the key for this model's provider, if we know it.
+
+    The CLI must not simply take the first variable that happens to be set: with
+    both OPENAI_API_KEY and ANTHROPIC_API_KEY exported, ``--model
+    claude-haiku-4-5`` would otherwise be handed the OpenAI key and fail to
+    authenticate.
+
+    >>> env_var_for_model("claude-haiku-4-5")
+    'ANTHROPIC_API_KEY'
+    >>> env_var_for_model("moonshot/kimi-k2.5")
+    'MOONSHOT_API_KEY'
+    """
+    from litellm import get_llm_provider
+
+    try:
+        _, provider_id, _, _ = get_llm_provider(model)  # pyright: ignore[reportUnknownVariableType]
+    except Exception:
+        return None
+    for name, provider in LITELLM_IDS.items():
+        if provider == provider_id:
+            return ENV_VARS[name]
+    return None
+
 
 # Extraction is an easy task, so the cheap tier is the sensible default.
 DEFAULT_PROVIDER = "OpenAI"

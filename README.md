@@ -51,7 +51,7 @@ task, so the cheapest model in each row is usually enough; the default is
 | Anthropic | `claude-haiku-4-5` | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com/settings/keys) |
 | DeepSeek | `deepseek/deepseek-v4-flash` | `DEEPSEEK_API_KEY` | [platform.deepseek.com](https://platform.deepseek.com/api_keys) |
 | Kimi | `moonshot/kimi-k2.5` | `MOONSHOT_API_KEY` | [platform.moonshot.ai](https://platform.moonshot.ai/console/api-keys) |
-| GLM | `zai/glm-4.7-flash` (free) | `ZAI_API_KEY` | [z.ai](https://z.ai/manage-apikey/apikey-list) |
+| GLM | `zai/glm-4.5-flash` (free) | `ZAI_API_KEY` | [z.ai](https://z.ai/manage-apikey/apikey-list) |
 | Grok | `xai/grok-4-1-fast-non-reasoning` | `XAI_API_KEY` | [console.x.ai](https://console.x.ai/) |
 
 The full list lives in `text2ics/models.py` and is shared by the CLI and the web
@@ -70,12 +70,19 @@ export OPENAI_API_KEY="your-api-key"          # or any variable from the table a
 text2ics path/to/your/textfile.txt > events.ics
 ```
 
-Pick a different model with `--model`, which accepts any litellm model id:
+Pick a different model with `--model`, which accepts any litellm model id. The
+key is looked up from *that model's* provider, so several can be exported at once
+without them being confused for one another:
 
 ```bash
-text2ics notes.txt --model claude-haiku-4-5 > events.ics
-text2ics notes.txt --language da > events.ics
+export OPENAI_API_KEY="..." ANTHROPIC_API_KEY="..."
+text2ics notes.txt                                > openai.ics   # uses OPENAI_API_KEY
+text2ics notes.txt --model claude-haiku-4-5       > claude.ics   # uses ANTHROPIC_API_KEY
+text2ics notes.txt --language da                  > danish.ics
 ```
+
+`--api-key` overrides the lookup, and `TEXT2ICS_API_KEY` works as a
+provider-agnostic fallback.
 
 For more options, run `text2ics --help`.
 
