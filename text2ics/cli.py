@@ -1,10 +1,13 @@
+import sys
 from pathlib import Path
 
 import typer
-from rich import print  # noqa A004
 from typing_extensions import Annotated
 
+from text2ics.models import DEFAULT_MODEL
+
 app = typer.Typer()
+
 
 @app.command()
 def main(
@@ -23,13 +26,19 @@ def main(
         str,
         typer.Option(
             ...,
-            envvar=[f"{vendor}_API_KEY" for vendor in ["OPENAI", "CLAUDE", "GEMINI", "TEXT2ICS"]],
+            envvar=[
+                f"{vendor}_API_KEY"
+                for vendor in ["OPENAI", "CLAUDE", "GEMINI", "DEEPSEEK", "TEXT2ICS"]
+            ],
             help="API key for the LLM service.",
         ),
     ],
-    model: Annotated[str, typer.Option(help="What model to use.")] = "gpt-5",
-    language: Annotated[
+    model: Annotated[
         str,
+        typer.Option(help="Model to use. Any litellm model id works; see text2ics/models.py."),
+    ] = DEFAULT_MODEL,
+    language: Annotated[
+        str | None,
         typer.Option(
             help="Specify the output language for the ICS file. Defaults to autodetection"
         ),
@@ -43,8 +52,8 @@ def main(
     with open(text_file, "r", encoding="utf-8") as f:
         text_from_file = f.read()
 
-    ics_calendar = process_content(
+    ics_calendar, _ = process_content(
         content=text_from_file, api_key=api_key, model=model, language=language
     )
-    print(ics_calendar.to_ical().decode("utf-8"))
-
+    # Raw stdout, not rich.print: ICS is machine-readable and must not be wrapped.
+    sys.stdout.write(ics_calendar.to_ical().decode("utf-8"))
