@@ -1,10 +1,11 @@
+import os
 import sys
 from pathlib import Path
 
 import typer
 from typing_extensions import Annotated
 
-from text2ics.models import DEFAULT_MODEL
+from text2ics.models import DEFAULT_MODEL, env_var_for_model
 
 app = typer.Typer()
 
@@ -23,16 +24,16 @@ def main(
         ),
     ],
     api_key: Annotated[
-        str,
+        str | None,
         typer.Option(
-            ...,
-            envvar=[
-                f"{vendor}_API_KEY"
-                for vendor in ["OPENAI", "CLAUDE", "GEMINI", "DEEPSEEK", "TEXT2ICS"]
-            ],
-            help="API key for the LLM service.",
+            # Deliberately not a list of envvars: typer takes the first one that
+            # is set, so exporting OPENAI_API_KEY and then asking for a Claude
+            # model would send the OpenAI key to Anthropic. The key is resolved
+            # from the model's own provider below instead.
+            envvar="TEXT2ICS_API_KEY",
+            help="API key. Defaults to the variable for the chosen model's provider.",
         ),
-    ],
+    ] = None,
     model: Annotated[
         str,
         typer.Option(help="Model to use. Any litellm model id works; see text2ics/models.py."),
@@ -48,6 +49,13 @@ def main(
     Reads input text from a file, processes it to generate an ICS calendar, and prints the result.
     """
     from .converter import process_content
+
+    if api_key is None:
+        variable = env_var_for_model(model)
+        api_key = os.environ.get(variable) if variable else None
+    if not api_key:
+        expected = env_var_for_model(model) or "the provider's API key variable"
+        raise typer.BadParameter(f"No API key for {model!r}. Export {expected}, or pass --api-key.")
 
     with open(text_file, "r", encoding="utf-8") as f:
         text_from_file = f.read()

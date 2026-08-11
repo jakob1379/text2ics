@@ -1,6 +1,10 @@
 """The model picker offered `claude-4.5-haiku`, which is not a real id, so
-choosing Claude failed at call time. These checks are offline -- litellm ships a
-registry of every model it routes, so no API key or network is needed."""
+choosing Claude failed at call time.
+
+Genuinely offline: conftest.py sets LITELLM_LOCAL_MODEL_COST_MAP so these assert
+against the model map bundled with the pinned litellm. Without it litellm fetches
+the map from GitHub, and ids the installed version cannot resolve would pass here
+and then fail in front of a user."""
 
 from typing import Any, cast
 
@@ -11,6 +15,7 @@ from text2ics.models import (
     DEFAULT_LABEL,
     DEFAULT_MODEL,
     DEFAULT_PROVIDER,
+    ENV_VARS,
     KEY_URLS,
     PROVIDERS,
 )
@@ -53,3 +58,21 @@ def test_each_provider_is_ordered_cheapest_first(provider: str):
 
 def test_every_provider_has_a_key_url():
     assert set(KEY_URLS) == set(PROVIDERS)
+
+
+def test_every_provider_has_the_env_var_litellm_reads():
+    """A provider without one is unreachable from the CLI.
+
+    Pinned exactly, not by suffix: the bug this guards against was
+    ``CLAUDE_API_KEY``, which litellm never reads but which a
+    ``endswith("_API_KEY")`` check would happily accept.
+    """
+    assert ENV_VARS == {
+        "OpenAI": "OPENAI_API_KEY",
+        "Anthropic": "ANTHROPIC_API_KEY",
+        "DeepSeek": "DEEPSEEK_API_KEY",
+        "Kimi": "MOONSHOT_API_KEY",
+        "GLM": "ZAI_API_KEY",
+        "Grok": "XAI_API_KEY",
+    }
+    assert set(ENV_VARS) == set(PROVIDERS)
