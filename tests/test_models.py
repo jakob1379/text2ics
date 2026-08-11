@@ -11,6 +11,7 @@ from text2ics.models import (
     DEFAULT_LABEL,
     DEFAULT_MODEL,
     DEFAULT_PROVIDER,
+    ENV_VARS,
     KEY_URLS,
     PROVIDERS,
 )
@@ -53,3 +54,9 @@ def test_each_provider_is_ordered_cheapest_first(provider: str):
 
 def test_every_provider_has_a_key_url():
     assert set(KEY_URLS) == set(PROVIDERS)
+
+
+def test_every_provider_has_the_env_var_litellm_reads():
+    """A provider without one is unreachable from the CLI."""
+    assert set(ENV_VARS) == set(PROVIDERS)
+    assert all(v.endswith("_API_KEY") for v in ENV_VARS.values())

@@ -45,6 +45,18 @@ PROVIDERS: dict[str, dict[str, str]] = {
     },
 }
 
+# The environment variable litellm reads for each provider. The CLI offers these
+# as --api-key fallbacks; tests/test_models.py keeps the set aligned with
+# PROVIDERS so a new provider cannot be added without one.
+ENV_VARS: dict[str, str] = {
+    "OpenAI": "OPENAI_API_KEY",
+    "Anthropic": "ANTHROPIC_API_KEY",
+    "DeepSeek": "DEEPSEEK_API_KEY",
+    "Kimi": "MOONSHOT_API_KEY",
+    "GLM": "ZAI_API_KEY",
+    "Grok": "XAI_API_KEY",
+}
+
 # Where to get a key, shown next to the provider choice.
 KEY_URLS: dict[str, str] = {
     "OpenAI": "https://platform.openai.com/settings/organization/api-keys",

@@ -4,7 +4,7 @@ from pathlib import Path
 import typer
 from typing_extensions import Annotated
 
-from text2ics.models import DEFAULT_MODEL
+from text2ics.models import DEFAULT_MODEL, ENV_VARS
 
 app = typer.Typer()
 
@@ -26,10 +26,9 @@ def main(
         str,
         typer.Option(
             ...,
-            envvar=[
-                f"{vendor}_API_KEY"
-                for vendor in ["OPENAI", "CLAUDE", "GEMINI", "DEEPSEEK", "TEXT2ICS"]
-            ],
+            # The names litellm itself reads, plus a tool-specific fallback.
+            # This used to advertise CLAUDE_API_KEY, which litellm never reads.
+            envvar=[*ENV_VARS.values(), "TEXT2ICS_API_KEY"],
             help="API key for the LLM service.",
         ),
     ],
