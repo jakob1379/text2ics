@@ -24,8 +24,8 @@ PROVIDERS: dict[str, dict[str, str]] = {
         "Claude Opus 5 (most capable)": "claude-opus-5",
     },
     "DeepSeek": {
-        "DeepSeek V4 Flash (cheapest)": "deepseek/deepseek-v4-flash",
-        "DeepSeek V3.2": "deepseek/deepseek-v3.2",
+        "DeepSeek V3.2 (cheapest)": "deepseek/deepseek-v3.2",
+        "DeepSeek V4 Flash": "deepseek/deepseek-v4-flash",
         "DeepSeek V4 Pro": "deepseek/deepseek-v4-pro",
     },
     "Kimi": {
